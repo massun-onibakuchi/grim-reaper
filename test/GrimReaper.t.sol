@@ -51,7 +51,10 @@ abstract contract GrimReaperBaseTest is Test {
     }
 
     function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) internal virtual {
+        uint256 _before = gasleft();
         reaper.execute(_col, _debt, _user, _debtToCover);
+        uint256 _after = gasleft();
+        console2.log("Gas used: ", (_before - _after));
     }
 
     function testRevertIfLiquidationFail() public {
@@ -98,11 +101,16 @@ contract GrimReaperHuffTest is GrimReaperBaseTest {
 
     function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) internal override {
         bytes memory payload = getLiquidationPayload(_col, _debt, _user, _debtToCover);
-        address(reaper).call(payload);
+        uint256 _before = gasleft();
+        (bool success,) = address(reaper).call(payload);
+        uint256 _after = gasleft();
+        console2.log("Gas used: ", (_before - _after));
+        require(success, "liquidation failed");
     }
 
     function getLiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
         internal
+        pure
         returns (bytes memory payload)
     {
         payload = abi.encodePacked(_col, _debt, _user, uint128(_debtToCover));

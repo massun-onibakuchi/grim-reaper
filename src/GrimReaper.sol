@@ -50,17 +50,19 @@ contract GrimReaper {
     /// @dev The Aave V3 Pool on Optimism
     address internal constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
 
+    /// TODO: change this to the fallback function
     function execute(address collateralAsset, address debtAsset, address user, uint256 debtToCover) external payable {
         if (msg.sender != OWNER) revert OnlyOwner();
-        IERC20Like(debtAsset).approve(POOL, debtToCover); // this may not work for some of weird tokens like USDT
+        IERC20Like(debtAsset).approve(POOL, debtToCover); // this may not properly work for some kind of tokens like USDT
         IPoolLike(POOL).liquidationCall(collateralAsset, debtAsset, user, debtToCover, false);
     }
 
-    // *** Receive profits from contract *** //
-
+    /// @notice Receive profits from contract
     function recoverERC20(address token) public {
         if (msg.sender != OWNER) revert OnlyOwner();
+        // ignore overflow/underflow check
         unchecked {
+            // left dust in the contract for gas saving
             IERC20Like(token).safeTransfer(msg.sender, IERC20Like(token).balanceOf(address(this)) - 1);
         }
     }

@@ -10,7 +10,7 @@ contract MockPool {
     function liquidationCall(
         address collateralAsset,
         address debtAsset,
-        address user,
+        address, /* user */
         uint256 debtToCover,
         bool receiveAToken
     ) external {
