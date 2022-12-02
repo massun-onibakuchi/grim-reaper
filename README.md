@@ -1,39 +1,22 @@
 <img align="right" width="150" height="150" top="100" src="./assets/blueprint.png">
 
-# huff-project-template • [![ci](https://github.com/huff-language/huff-project-template/actions/workflows/ci.yaml/badge.svg)](https://github.com/huff-language/huff-project-template/actions/workflows/ci.yaml) ![license](https://img.shields.io/github/license/huff-language/huff-project-template.svg) ![solidity](https://img.shields.io/badge/solidity-^0.8.15-lightgrey)
-
-Versatile Huff Project Template using Foundry.
-
+# Reaper • [![ci](https://github.com/massun-onibakuchi/grim-reaper/actions/workflows/ci.yaml/badge.svg)](https://github.com/massun-onibakuchi/grim-reaper/actions/workflows/ci.yaml) ![license](https://img.shields.io/badge/License-MIT-green.svg?label=license) ![solidity](https://img.shields.io/badge/solidity-^0.8.15-lightgrey)
 
 ## Getting Started
 
+This is [grim-reaper](https://github.com/massun-onibakuchi/grim-reaper): EVM-based on-chain liquidation bot for Aave V3 built with Huff language. Optimized for gas efficiency.
+This repo doesn't include any off-chain architecture.
+
 ### Requirements
 
-The following will need to be installed in order to use this template. Please follow the links and instructions.
+The following will need to be installed. Please follow the links and instructions.
 
--   [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)  
-    -   You'll know you've done it right if you can run `git --version`
--   [Foundry / Foundryup](https://github.com/gakonst/foundry)
-    -   This will install `forge`, `cast`, and `anvil`
-    -   You can test you've installed them right by running `forge --version` and get an output like: `forge 0.2.0 (92f8951 2022-08-06T00:09:32.96582Z)`
-    -   To get the latest of each, just run `foundryup`
--   [Huff Compiler](https://docs.huff.sh/get-started/installing/)
-    -   You'll know you've done it right if you can run `huffc --version` and get an output like: `huffc 0.3.0`
+- [Foundry](https://github.com/gakonst/foundry)
+- [Huff Compiler](https://docs.huff.sh/get-started/installing/)
 
 ### Quickstart
 
-1. Clone this repo or use template
-
-Click "Use this template" on [GitHub](https://github.com/huff-language/huff-project-template) to create a new repository with this repo as the initial state.
-
-Or run:
-
-```
-git clone https://github.com/huff-language/huff-project-template
-cd huff-project-template
-```
-
-2. Install dependencies
+1. Install dependencies
 
 Once you've cloned and entered into your repository, you need to install the necessary dependencies. In order to do so, simply run:
 
@@ -41,7 +24,7 @@ Once you've cloned and entered into your repository, you need to install the nec
 forge install
 ```
 
-3. Build & Test
+2. Build & Test
 
 To build and test your contracts, you can run:
 
@@ -52,32 +35,16 @@ forge test
 
 For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
 
-
-## Blueprint
-
-```ml
-lib
-├─ forge-std — https://github.com/foundry-rs/forge-std
-├─ foundry-huff — https://github.com/huff-language/foundry-huff
-scripts
-├─ Deploy.s.sol — Deployment Script
-src
-├─ SimpleStore — A Simple Storage Contract in Huff
-test
-└─ SimpleStore.t — SimpleStoreTests
-```
-
-
-## License
-
-[The Unlicense](https://github.com/huff-language/huff-project-template/blob/master/LICENSE)
-
+| Single Liquidation     | Gas Used |
+| ---------------------- | -------- |
+| Pure Solidity Contract | 34403    |
+| Huff Contract          | 33873    |
 
 ## Acknowledgements
 
-- [forge-template](https://github.com/foundry-rs/forge-template)
-- [femplate](https://github.com/abigger87/femplate)
-
+- [subway](https://github.com/libevm/subway#subway)
+- [subway-rs](https://github.com/abigger87/subway-rs)
+- [huff-examples](https://github.com/huff-language/huff-examples)
 
 ## Disclaimer
 
