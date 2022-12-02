@@ -7,7 +7,7 @@ interface IERC20Like {
     function approve(address spender, uint256 value) external returns (bool);
 }
 
-interface IPool {
+interface IPoolLike {
     /**
      * @notice Function to liquidate a non-healthy position collateral-wise, with Health Factor below 1
      * - The caller (liquidator) covers `debtToCover` amount of debt of the user getting liquidated, and receives
@@ -53,7 +53,7 @@ contract GrimReaper {
     function execute(address collateralAsset, address debtAsset, address user, uint256 debtToCover) external payable {
         if (msg.sender != OWNER) revert OnlyOwner();
         IERC20Like(debtAsset).approve(POOL, debtToCover); // this may not work for some of weird tokens like USDT
-        IPool(POOL).liquidationCall(collateralAsset, debtAsset, user, debtToCover, false);
+        IPoolLike(POOL).liquidationCall(collateralAsset, debtAsset, user, debtToCover, false);
     }
 
     // *** Receive profits from contract *** //
