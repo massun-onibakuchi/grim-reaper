@@ -47,7 +47,7 @@
     STATIC_CALL_TOKEN_BALANCE_MINUS_ONE(error)        // [balance, token]
 
     // Call token.transfer(msg.sender, balance)
-    __FUNC_SIG(transfer) 0x00 mstore    // [balance, token]
+    __FUNC_SIG(transfer) 0x00 mstore        // [balance, token]
     caller 0x20 mstore                      // [balance, token]
     0x40 mstore                             // [token]
 
@@ -66,21 +66,41 @@
 
 /// @notice Entry point for liquidation call 
 /// @dev calldata [address collateralAsset, address debtAsset, address user, uint128 debtToCover]
-/// calldata is encode with abi.encodePacked(collateralAsset,debtAsset,user,debtToCover) 
+/// calldata is encoded with abi.encodePacked(collateralAsset,debtAsset,user,debtToCover) 
 ///https://docs.soliditylang.org/en/v0.8.17/abi-spec.html#non-standard-packed-mode
 #define macro EXECUTE_LIQUIDATION() = takes(0) returns(0) {
     // input stack: []
 
     // Unpack the calldata
-    0x00 calldataload 0x60 shr              // [col] - bytes 20
-    0x14 calldataload 0x60 shr              // [debt, col] - bytes 20
-    0x28 calldataload 0x60 shr              // [user, debt, col] - bytes 20
-    0x3c calldataload 0x80 shr              // [debtToCover, user, debt, col] - uint128
+    // calldata is encoded with abi.encodePacked(address collateralAsset,address debtAsset,address user,uint128 debtToCover)
+    0x00 calldataload 0x60 shr               // [col] - bytes 20
+    0x14 calldataload 0x60 shr               // [debt, col] - bytes 20
+    0x28 calldataload 0x60 shr               // [user, debt, col] - bytes 20
+    0x3c calldataload 0x80 shr               // [debtToCover, user, debt, col] - uint128
 
     // Call debtAsset.approve(pool, debtToCover)
-    __FUNC_SIG(approve) 0xe0 shl 0x00 mstore  // [debtToCover, user, debt, col]
-    [POOL] 0x04 mstore                     // [debtToCover, user, debt, col]
-    dup1 0x24 mstore                       // [debtToCover, user, debt, col]
+    // e.g. approve(address POOL,uint256 1000)
+    // store func sig at 0x00
+    __FUNC_SIG(approve) 0xe0 shl             // [func_sig, debtToCover, user, debt, col]
+    0x00 mstore                              // [debtToCover, user, debt, col]
+    // after the operation 
+    // Memory loc      Data
+    // 0x00: 095ea7b300000000000000000000000000000000000000000000000000000000
+    
+    // store POOL address at 0x04
+    [POOL] 0x04 mstore                       // [debtToCover, user, debt, col]
+    // after the operation 
+    // Memory loc      Data
+    // 0x00: 095ea7b3000000000000000000000000794a61358d6845594f94dc1db02a252b
+    // 0x20: 5b4814ad00000000000000000000000000000000000000000000000000000000
+   
+     // store debtToCover at 0x24
+    dup1 0x24 mstore                        // [debtToCover, user, debt, col]
+    // after the operation 
+    // Memory loc      Data
+    // 0x00: 095ea7b3000000000000000000000000794a61358d6845594f94dc1db02a252b
+    // 0x20: 5b4814ad00000000000000000000000000000000000000000000000000000000
+    // 0x40: 000003e800000000000000000000000000000000000000000000000000000000
 
     0x00                    // [retSize, debtToCover, user, debt, col]
     0x00                    // [retOffset, retSize, debtToCover, user, debt, col]
@@ -92,23 +112,23 @@
     call                    // [success, debtToCover, user, debt, col]
 
     // Validate call success
-    iszero error jumpi       // [debtToCover, user, debt, col]
+    iszero error jumpi      // [debtToCover, user, debt, col]
 
     // Call POOL.liquidationCall(collateralAsset, debtAsset, user, debtToCover, false)
     __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   //  [debtToCover, user, debt, col]
-    dup4 0x04 mstore                     // [debtToCover, user, debt, col]
-    dup3 0x24 mstore                     // [debtToCover, user, debt, col]
-    dup2 0x44 mstore                     // [debtToCover, user, debt, col]
-    dup1 0x64 mstore                     // [debtToCover, user, debt, col]
-    0x00 0x84 mstore                     // [debtToCover, user, debt, col]
+    dup4 0x04 mstore        // [debtToCover, user, debt, col]
+    dup3 0x24 mstore        // [debtToCover, user, debt, col]
+    dup2 0x44 mstore        // [debtToCover, user, debt, col]
+    dup1 0x64 mstore        // [debtToCover, user, debt, col]
+    0x00 0x84 mstore        // [debtToCover, user, debt, col]
 
     // Execute the call
     0x00                    // [retSize, debtToCover, user, debt, col]
     0x00                    // [retOffset, retSize, debtToCover, user, debt, col]
-    0x104                    // [argSize, retOffset, retSize, debtToCover, user, debt, col]
+    0x104                   // [argSize, retOffset, retSize, debtToCover, user, debt, col]
     0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     dup1                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    [POOL]                    // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
+    [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     0x1388 gas sub          // [(gas - 5000), to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     call                    // [success, debtToCover, user, debt, col]
 
@@ -122,17 +142,21 @@
 }
 // Main
 #define macro MAIN() = takes(0) returns(0) {
+    // pc = 0 there 100% of the time 
+    // so its just a way to save a very very small amount of gas (1 gas)
     // Get the function selector
-    pc calldataload 0xe0 shr          // [func_sig]
+    // load 32 bytes starting from position 0 onto the stack (if the calldata is less than 32 bytes then it will be right padded with zeros). 
+    // 0xE0 shr right shifts the calldata by 224 bits,
+    // leaving 32 bits or 4 bytes remaining on the stack.
+    pc calldataload 0xe0 shr                                 // [func_sig]
 
     // Verify that the caller is the OWNER
     caller [OWNER] eq iszero error jumpi                     // [selector]
 
-    // Dispatcher
-    // Now we can match on selector
-    dup1 __FUNC_SIG(recoverERC20) eq recover_erc20 jumpi    // [selector]
+    // Dispatcher to determine which function to execute
+    dup1 __FUNC_SIG(recoverERC20) eq recover_erc20 jumpi     // [selector]
    
-    // fallback is as simple as throwing it after exhausted switch cases.
+    // If no matching selector was found, call the liquidation function
     EXECUTE_LIQUIDATION()
 
     recover_erc20:

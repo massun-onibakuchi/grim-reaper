@@ -7,6 +7,7 @@ interface IERC20Like {
     function approve(address spender, uint256 value) external returns (bool);
 }
 
+/// @title Aave V3 Pool
 interface IPoolLike {
     /**
      * @notice Function to liquidate a non-healthy position collateral-wise, with Health Factor below 1
@@ -43,7 +44,6 @@ contract GrimReaper {
     using SafeERC20 for IERC20Like;
 
     error OnlyOwner();
-    error OnlyFlashLender();
 
     address internal constant OWNER = 0x0000000000000000000000000000000000000003;
 
@@ -52,8 +52,10 @@ contract GrimReaper {
 
     /// TODO: change this to the fallback function
     function execute(address collateralAsset, address debtAsset, address user, uint256 debtToCover) external payable {
+        // only the owner of this contract is allowed to call this function
         if (msg.sender != OWNER) revert OnlyOwner();
         IERC20Like(debtAsset).approve(POOL, debtToCover); // this may not properly work for some kind of tokens like USDT
+        // allow the POOL contract to transfer up to `debtToCover` amount of `debtAsset` from the caller's account
         IPoolLike(POOL).liquidationCall(collateralAsset, debtAsset, user, debtToCover, false);
     }
 
@@ -62,7 +64,7 @@ contract GrimReaper {
         if (msg.sender != OWNER) revert OnlyOwner();
         // ignore overflow/underflow check
         unchecked {
-            // left dust in the contract for gas saving
+            // leave a small amount of "dust" in the contract to save on gas costs
             IERC20Like(token).safeTransfer(msg.sender, IERC20Like(token).balanceOf(address(this)) - 1);
         }
     }
