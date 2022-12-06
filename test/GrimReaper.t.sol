@@ -5,6 +5,7 @@ import "foundry-huff/HuffDeployer.sol";
 import "forge-std/Test.sol";
 
 import {GrimReaper} from "../src/GrimReaper.sol";
+import {OptimizedGrimReaper} from "../src/OptimizedGrimReaper.sol";
 import "./MockERC20.sol";
 import "./MockPool.sol";
 
@@ -94,9 +95,9 @@ contract GrimReaperSolTest is GrimReaperBaseTest {
     }
 }
 
-contract GrimReaperHuffTest is GrimReaperBaseTest {
-    function _deployGrimReaper() internal override {
-        reaper = GrimReaper(HuffDeployer.deploy("GrimReaper"));
+contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
+    function _deployGrimReaper() internal virtual override {
+        reaper = GrimReaper(address(new OptimizedGrimReaper()));
     }
 
     function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) internal override {
@@ -114,5 +115,11 @@ contract GrimReaperHuffTest is GrimReaperBaseTest {
         returns (bytes memory payload)
     {
         payload = abi.encodePacked(_col, _debt, _user, uint128(_debtToCover));
+    }
+}
+
+contract GrimReaperHuffTest is OptimizedGrimReaperSolTest {
+    function _deployGrimReaper() internal virtual override {
+        reaper = GrimReaper(HuffDeployer.deploy("GrimReaper"));
     }
 }
