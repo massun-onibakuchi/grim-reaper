@@ -40,12 +40,12 @@ abstract contract GrimReaperBaseTest is Test {
 
     function _deployGrimReaper() internal virtual;
 
-    function testLiquidate(uint256 amount) public {
+    function testLiquidate(uint256 amount, address user) public {
         vm.assume(amount < type(uint128).max);
         deal(address(debt), address(reaper), amount, true);
 
         vm.prank(owner);
-        _callLiquidate(address(collateral), address(debt), address(0xcafe), amount);
+        _callLiquidate(address(collateral), address(debt), user, amount);
 
         assertEq(debt.balanceOf(address(reaper)), 0);
         assertEq(collateral.balanceOf(address(reaper)), liquidationBonus);

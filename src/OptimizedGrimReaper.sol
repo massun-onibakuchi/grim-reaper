@@ -75,6 +75,7 @@ contract OptimizedGrimReaper {
             // Call debtAsset.approve(pool, debtToCover)
 
             // approve function signature
+            // 0x7c = 124 in decimal.
             mstore(0x7c, ERC20_APPROVE_ID)
             // pool
             mstore(0x80, POOL)
