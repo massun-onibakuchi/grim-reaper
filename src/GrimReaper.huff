@@ -142,19 +142,24 @@
 }
 // Main
 #define macro MAIN() = takes(0) returns(0) {
-    // pc = 0 there 100% of the time 
-    // so its just a way to save a very very small amount of gas (1 gas)
-    // Get the function selector
-    // load 32 bytes starting from position 0 onto the stack (if the calldata is less than 32 bytes then it will be right padded with zeros). 
-    // 0xE0 shr right shifts the calldata by 224 bits,
-    // leaving 32 bits or 4 bytes remaining on the stack.
-    pc calldataload 0xe0 shr                                 // [func_sig]
+    // here we dispatch based on the size of calldata instead of the function selector
+    /*  
+        // pc = 0 there 100% of the time 
+        // so its just a way to save a very very small amount of gas (1 gas)
+        // Get the function selector
+        // load 32 bytes starting from position 0 onto the stack (if the calldata is less than 32 bytes then it will be right padded with zeros). 
+        // 0xE0 shr right shifts the calldata by 224 bits,
+        // leaving 32 bits or 4 bytes remaining on the stack.
+        pc calldataload 0xe0 shr                                 // [func_sig]
+        dup1 __FUNC_SIG(recoverERC20) eq recover_erc20 jumpi     // [selector]
+    */
 
     // Verify that the caller is the OWNER
-    caller [OWNER] eq iszero error jumpi                     // [selector]
+    caller [OWNER] eq iszero error jumpi                       // []
 
     // Dispatcher to determine which function to execute
-    dup1 __FUNC_SIG(recoverERC20) eq recover_erc20 jumpi     // [selector]
+    // 24 bytes call data `recoverERC20(address)`
+    calldatasize 0x24 eq recover_erc20 jumpi                   // []
    
     // If no matching selector was found, call the liquidation function
     EXECUTE_LIQUIDATION()

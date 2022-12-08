@@ -39,7 +39,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 | ------------------------------- | -------- | ------------------ |
 | Pure Solidity Contract          | 34403    | 1.105              |
 | Solidity Contract with assembly | 33913    | 0.792              |
-| Huff Contract                   | 33873    | 0.568              |
+| Huff Contract                   | 33861    | 0.552              |
 
 ## Acknowledgements
 
