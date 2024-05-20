@@ -21,6 +21,7 @@ The following will need to be installed. Please follow the links and instruction
 Once you've cloned and entered into your repository, you need to install the necessary dependencies. In order to do so, simply run:
 
 ```shell
+pnpm install
 forge install
 ```
 
