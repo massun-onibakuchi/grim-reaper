@@ -36,11 +36,11 @@ forge test
 
 For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
 
-| Single Liquidation              | Gas Used | Contract Size (kB) |
+| Single Liquidation              | Gas Used | Bytecode Size (kB) |
 | ------------------------------- | -------- | ------------------ |
-| Pure Solidity Contract          | 34403    | 1.105              |
-| Solidity Contract with assembly | 33913    | 0.792              |
-| Huff Contract                   | 33861    | 0.552              |
+| Pure Solidity Contract          | 97944    | 1.058              |
+| Solidity Contract with assembly | 97319    | 0.423              |
+| Huff Contract                   | 97261    | 0.512              |
 
 ## Acknowledgements
 

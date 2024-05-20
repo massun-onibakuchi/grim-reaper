@@ -1,11 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.15;
-
-interface IERC20Like {
-    function balanceOf(address account) external returns (uint256);
-    function transfer(address to, uint256 value) external returns (bool);
-    function approve(address spender, uint256 value) external returns (bool);
-}
+pragma solidity ^0.8.24;
 
 /// @title Aave V3 Pool
 interface IPoolLike {
@@ -30,19 +24,7 @@ interface IPoolLike {
     ) external;
 }
 
-library SafeERC20 {
-    /// @dev relaxing the requirement on the return value: the return value is optional
-
-    // CODE 5: safeTransfer failed
-    function safeTransfer(IERC20Like token, address to, uint256 value) internal {
-        (bool s,) = address(token).call(abi.encodeWithSelector(IERC20Like.transfer.selector, to, value));
-        require(s, "5");
-    }
-}
-
 contract OptimizedGrimReaper {
-    using SafeERC20 for IERC20Like;
-
     address internal constant OWNER = 0x0000000000000000000000000000000000000003;
 
     /// @dev The Aave V3 Pool on Optimism
@@ -101,18 +83,38 @@ contract OptimizedGrimReaper {
     }
 
     /// @notice Receive profits from contract
-    function recoverERC20(address token) public {
+    function recoverERC20(address /* token */ ) public payable {
         assembly {
             // only the owner of this contract is allowed to call this function
             if iszero(eq(caller(), OWNER)) {
                 // WGMI
                 revert(3, 3)
             }
-        }
-        // ignore overflow/underflow check
-        unchecked {
-            // leave a small amount of "dust" in the contract to save on gas costs
-            IERC20Like(token).safeTransfer(msg.sender, IERC20Like(token).balanceOf(address(this)) - 1);
+
+            let token := calldataload(0x04) // The token to recover.
+            // Modified from Solidity's SafeTransferLib
+            mstore(0x00, 0x70a08231) // Store the function selector of `balanceOf(address)`.
+            mstore(0x20, address()) // Store the address of the current contract.
+            // Read the balance, reverting upon failure.
+            if iszero(
+                and( // The arguments of `and` are evaluated from right to left.
+                    gt(returndatasize(), 0x1f), // At least 32 bytes returned.
+                    staticcall(gas(), token, 0x1c, 0x24, 0x34, 0x20)
+                )
+            ) { revert(3, 3) }
+            mstore(0x14, caller()) // Store the `to` argument.
+            // ignore overflow/underflow check
+            mstore(0x34, sub(mload(0x34), 1)) // The `amount` is already at 0x34.
+            mstore(0x00, 0xa9059cbb000000000000000000000000) // `transfer(address,uint256)`.
+            // Perform the transfer, reverting upon failure.
+            if iszero(
+                and( // The arguments of `and` are evaluated from right to left.
+                    or(eq(mload(0x00), 1), iszero(returndatasize())), // Returned 1 or nothing.
+                    call(gas(), token, 0, 0x10, 0x44, 0x00, 0x20)
+                )
+            ) { revert(3, 3) }
+            // mstore(0x34, 0) // Restore the part of the free memory pointer that was overwritten.
+            stop() // Stop the execution.
         }
     }
 }

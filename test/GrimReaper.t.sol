@@ -40,6 +40,10 @@ abstract contract GrimReaperBaseTest is Test {
 
     function _deployGrimReaper() internal virtual;
 
+    function testLiquidate() public {
+        testLiquidate(1000e18, address(0xbabe));
+    }
+
     function testLiquidate(uint256 amount, address user) public {
         vm.assume(amount < type(uint128).max);
         deal(address(debt), address(reaper), amount, true);
