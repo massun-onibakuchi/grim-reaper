@@ -8,9 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - run: pnpm install
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -24,38 +32,3 @@ jobs:
 
       - name: Run Tests
         run: forge test -vvv
-
-  scripts:
-    strategy:
-      fail-fast: true
-    name: Run Scripts
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Install Huff
-        uses: huff-language/huff-toolchain@v2
-        with:
-          version: nightly
-
-      - name: Run Forge build
-        run: |
-          forge --version
-          forge build --sizes
-        id: build
-        continue-on-error: true
-
-      - name: Run scripts
-        run: |
-          ls -lsa
-          ls script/
-          for file in script/*; do
-            forge script $file -vvvv
-          done
