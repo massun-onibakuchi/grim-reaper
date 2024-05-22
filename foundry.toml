@@ -12,3 +12,9 @@ remappings = [
   "@openzeppelin=node_modules/@openzeppelin/",
   "solady=node_modules/solady/",
 ]
+
+bytecode_hash = "none"
+cbor_metadata = false
+
+[profile.release]
+optimizer_runs = 10_000_000

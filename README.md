@@ -36,11 +36,18 @@ forge test
 
 For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
 
-| Single Liquidation              | Gas Used | Bytecode Size (kB) |
-| ------------------------------- | -------- | ------------------ |
-| Pure Solidity Contract          | 97944    | 1.058              |
-| Solidity Contract with assembly | 97319    | 0.423              |
-| Huff Contract                   | 97261    | 0.512              |
+| Single Liquidation                             | Gas Used | Bytecode Size (kB) |
+| ---------------------------------------------- | -------- | ------------------ |
+| Solidity Contract (Optimizer runs: 200)        | 97944    | 1.005              |
+| Assembly (Optimizer runs: 200)                 | 97319    | 0.313              |
+| Huff Contract (Optimizer runs: 200)            | 97261    | 0.256              |
+| Solidity Contract (Optimizer runs: 10_000_000) | 97350    | 1.308              |
+| Assembly (Optimizer runs: 10_000_000)          | 96779    | 0.372              |
+| Huff Contract (Optimizer runs: 10_000_000)     | 96733    | 0.256              |
+
+> Note: Optimizer runs affects how well the compiler optimizes tests contract as well. So, it affects measurements.
+
+- solc version: 0.8.24, evm version: cancun with `bytecode_hash = "none"` and `cbor_metadata = false`
 
 ## Acknowledgements
 
