@@ -83,7 +83,8 @@ contract OptimizedGrimReaper {
     }
 
     /// @notice Receive profits from contract
-    function recoverERC20(address /* token */ ) public payable {
+    /// @dev Function signature matches `recoverERC20(address)`. Remove calldatasize check inserted by compiler.
+    function rev4207857931( /* address token */ ) external payable {
         assembly {
             // only the owner of this contract is allowed to call this function
             if iszero(eq(caller(), OWNER)) {

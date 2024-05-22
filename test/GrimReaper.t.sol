@@ -73,8 +73,10 @@ abstract contract GrimReaperBaseTest is Test {
         uint256 balance = 10000;
         deal(address(debt), address(reaper), balance, true);
 
+        uint256 _before = gasleft();
         vm.prank(owner);
         reaper.recoverERC20(address(debt));
+        console2.log("gas usage: ", _before - gasleft());
 
         assertEq(debt.balanceOf(address(reaper)), 1);
         assertEq(debt.balanceOf(owner), balance - 1);
