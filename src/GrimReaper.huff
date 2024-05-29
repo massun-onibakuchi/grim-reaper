@@ -114,21 +114,21 @@
 
     // Call POOL.liquidationCall(collateralAsset, debtAsset, user, debtToCover, false)
     __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   //  [debtToCover, user, debt, col]
-    dup4 0x04 mstore        // [debtToCover, user, debt, col]
-    dup3 0x24 mstore        // [debtToCover, user, debt, col]
-    dup2 0x44 mstore        // [debtToCover, user, debt, col]
-    dup1 0x64 mstore        // [debtToCover, user, debt, col]
-    0x00 0x84 mstore        // [debtToCover, user, debt, col]
+    0x64 mstore                                        // [user, debt, col]
+    0x44 mstore                                        // [debt, col]
+    0x24 mstore                                        // [col]
+    0x04 mstore                                        // []
+    0x00 0x84 mstore                                   // []
 
     // Execute the call
-    0x00                    // [retSize, debtToCover, user, debt, col]
-    0x00                    // [retOffset, retSize, debtToCover, user, debt, col]
-    0x104                   // [argSize, retOffset, retSize, debtToCover, user, debt, col]
-    0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    0x00                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    call                    // [success, debtToCover, user, debt, col]
+    0x00                    // [retSize]
+    0x00                    // [retOffset, retSize]
+    0x104                   // [argSize, retOffset, retSize]
+    0x00                    // [argOffset, argSize, retOffset, retSize]
+    0x00                    // [value, argOffset, argSize, retOffset, retSize]
+    [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize]
+    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize]
+    call                    // [success]
 
     // Validate call success
     iszero error jumpi stop
