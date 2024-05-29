@@ -52,6 +52,12 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 - solc version: 0.8.24, evm version: cancun with `bytecode_hash = "none"` and `cbor_metadata = false`.
 - `forge snapshot --fuzz-seed=111 -vv`
 
+## Father Optimization Ideas
+
+- Support limited kinds of collateral tokens and remove `collateral` parameter from main entrypoint
+  - O(1) selector table for token addresses
+  - Approve once on contract deployment instead of every liquidation
+
 ## Acknowledgements
 
 - [subway](https://github.com/libevm/subway#subway)
