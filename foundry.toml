@@ -16,5 +16,13 @@ remappings = [
 bytecode_hash = "none"
 cbor_metadata = false
 
+ignored_error_codes = [
+  "license",
+  "code-size",
+  "init-code-size",
+  "transient-storage",
+  3628,
+]
+
 [profile.release]
 optimizer_runs = 10_000_000

@@ -38,16 +38,19 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 
 | Single Liquidation                             | Gas Used | Bytecode Size (kB) |
 | ---------------------------------------------- | -------- | ------------------ |
-| Solidity Contract (Optimizer runs: 200)        | 97944    | 1.005              |
-| Assembly (Optimizer runs: 200)                 | 97319    | 0.313              |
-| Huff Contract (Optimizer runs: 200)            | 97261    | 0.256              |
-| Solidity Contract (Optimizer runs: 10_000_000) | 97350    | 1.308              |
-| Assembly (Optimizer runs: 10_000_000)          | 96779    | 0.372              |
-| Huff Contract (Optimizer runs: 10_000_000)     | 96733    | 0.256              |
+| Solidity Contract (Optimizer runs: 200)        | 97933    | 1.005              |
+| Assembly (Optimizer runs: 200)                 | 97295    | 0.306              |
+| Huff Contract (Optimizer runs: 200)            | 97246    | 0.254              |
+| Solidity Contract (Optimizer runs: 10_000_000) | 97339    | 1.308              |
+| Assembly (Optimizer runs: 10_000_000)          | 96755    | 0.327              |
+| Huff Contract (Optimizer runs: 10_000_000)     | 96718    | 0.254              |
+
+> `66270` gas is used for the liquidation logic itself on mock Aave v3 pool.
 
 > Note: Optimizer runs affects how well the compiler optimizes tests contract as well. So, it affects measurements.
 
-- solc version: 0.8.24, evm version: cancun with `bytecode_hash = "none"` and `cbor_metadata = false`
+- solc version: 0.8.24, evm version: cancun with `bytecode_hash = "none"` and `cbor_metadata = false`.
+- `forge snapshot --fuzz-seed=111 -vv`
 
 ## Acknowledgements
 
