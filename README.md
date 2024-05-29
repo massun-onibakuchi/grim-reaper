@@ -40,10 +40,10 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 | ---------------------------------------------- | -------- | ------------------ |
 | Solidity Contract (Optimizer runs: 200)        | 97933    | 1.005              |
 | Assembly (Optimizer runs: 200)                 | 97295    | 0.306              |
-| Huff Contract (Optimizer runs: 200)            | 97246    | 0.254              |
+| Huff Contract (Optimizer runs: 200)            | 97234    | 0.254              |
 | Solidity Contract (Optimizer runs: 10_000_000) | 97339    | 1.308              |
 | Assembly (Optimizer runs: 10_000_000)          | 96755    | 0.327              |
-| Huff Contract (Optimizer runs: 10_000_000)     | 96718    | 0.254              |
+| Huff Contract (Optimizer runs: 10_000_000)     | 96706    | 0.254              |
 
 > `66270` gas is used for the liquidation logic itself on mock Aave v3 pool.
 
