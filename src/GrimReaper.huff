@@ -11,14 +11,14 @@
 // Storage and constants
 #define constant OWNER = 0x0000000000000000000000000000000000000003
 #define constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD
-
+#define constant TRANSFER_SELECTOR = 0xa9059cbb000000000000000000000000
 
 // ref: https://github.com/abigger87/subway-rs/blob/ee51bbca28503174acc6ae6d1f9723be262d884d/contracts/src/Sandwich.huff
 
 /// @notice Fetches the token balance of the caller for the provided token
 /// @notice Stack Input: [token]
 /// @notice Stack Output: [balance, token]
-#define macro STATIC_CALL_TOKEN_BALANCE_MINUS_ONE(err) = takes (1) returns (2) {
+#define macro STATIC_CALL_TOKEN_BALANCE_MINUS_ONE() = takes (0) returns (2) {
     // Static Call token.balanceOf(address(this))
     __FUNC_SIG(balanceOf) 0x00 mstore       // [token]
     address 0x20 mstore                     // [token]
@@ -27,16 +27,14 @@
     0x00                                    // [retOffset, retSize, token]
     0x24                                    // [argSize, retOffset, retSize, token]
     0x1c                                    // [argOffset, argSize, retOffset, retSize, token]
-    dup5                                    // [to, argOffset, argSize, retOffset, retSize, token]
-    gas                                     // [gas, to, argOffset, argSize, retOffset, retSize, token]
+    dup5                                    // [to=token, argOffset, argSize, retOffset, retSize, token]
+    gas                                     // [gas, to=token, argOffset, argSize, retOffset, retSize, token]
     staticcall                              // [success, token]
 
     // Validate successful call
-    iszero <err> jumpi                      // [token]
+    iszero error jumpi                      // [token]
     0x00 mload                              // [balance, token]
-    dup1 iszero skip jumpi
     0x01 swap1 sub                          // [(balance - 1), token]
-    skip:                                   // [(balance - 1) | 0, token]
 }
 
 /// @notice Receive profits from contract
@@ -44,19 +42,19 @@
     0x00 calldataload                       // [token]
 
     // Get the balance of this contract
-    STATIC_CALL_TOKEN_BALANCE_MINUS_ONE(error)        // [balance, token]
+    STATIC_CALL_TOKEN_BALANCE_MINUS_ONE() // [(balance - 1), token]
 
-    // Call token.transfer(msg.sender, balance)
-    __FUNC_SIG(transfer) 0x00 mstore        // [balance, token]
-    caller 0x20 mstore                      // [balance, token]
-    0x40 mstore                             // [token]
+    // Call token.transfer(msg.sender, balance - 1)
+    caller 0x14 mstore                      // [(balance - 1), token]
+    0x34 mstore                             // [token]
+    [TRANSFER_SELECTOR] 0x00 mstore         // [(balance - 1), token]
 
-    0x00                                    // [retSize, token]
-    0x00                                    // [retOffset, retSize, token]
+    0x00                                    // [retSize=0, token]
+    0x00                                    // [retOffset=0, retSize, token]
     0x44                                    // [argSize, retOffset, retSize, token]
-    0x1c                                    // [argOffset, argSize, retOffset, retSize, token]
-    dup3                                    // [value, argOffset, argSize, retOffset, retSize, token]
-    dup6                                    // [to, value, argOffset, argSize, retOffset, retSize, token]
+    0x10                                    // [argOffset, argSize, retOffset, retSize, token]
+    0x00                                    // [value=0, argOffset, argSize, retOffset, retSize, token]
+    dup6                                    // [to=token, value, argOffset, argSize, retOffset, retSize, token]
     gas                                     // [gas, to, value, argOffset, argSize, retOffset, retSize, token]
     call                                    // [success, token]
 
@@ -79,7 +77,7 @@
     0x3c calldataload 0x80 shr               // [debtToCover, user, debt, col] - uint128
 
     // Call debtAsset.approve(pool, debtToCover)
-    // e.g. approve(address POOL,uint256 1000)
+    // e.g. approve(address POOL,uint256 1000+1)
     // store func sig at 0x00
     __FUNC_SIG(approve) 0xe0 shl             // [func_sig, debtToCover, user, debt, col]
     0x00 mstore                              // [debtToCover, user, debt, col]
@@ -95,7 +93,7 @@
     // 0x20: 5b4814ad00000000000000000000000000000000000000000000000000000000
 
      // store debtToCover at 0x24
-    dup1 0x24 mstore                        // [debtToCover, user, debt, col]
+    dup1 0x01 add 0x24 mstore                        // [debtToCover, user, debt, col]
     // after the operation 
     // Memory loc      Data
     // 0x00: 095ea7b3000000000000000000000000794a61358d6845594f94dc1db02a252b
@@ -106,8 +104,8 @@
     0x00                    // [retOffset, retSize, debtToCover, user, debt, col]
     0x44                    // [argSize, retOffset, retSize, debtToCover, user, debt, col]
     0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    dup1                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    dup8                    // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
+    0x00                    // [value=0, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
+    dup8                    // [to=debt, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     call                    // [success, debtToCover, user, debt, col]
 
@@ -127,7 +125,7 @@
     0x00                    // [retOffset, retSize, debtToCover, user, debt, col]
     0x104                   // [argSize, retOffset, retSize, debtToCover, user, debt, col]
     0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    dup1                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
+    0x00                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     call                    // [success, debtToCover, user, debt, col]
@@ -140,6 +138,7 @@
 #define macro WAGMI() = takes (0) returns (0) {
     0x00 0x00 revert
 }
+
 // Main
 #define macro MAIN() = takes(0) returns(0) {
     // here we dispatch based on the size of calldata instead of the function selector
