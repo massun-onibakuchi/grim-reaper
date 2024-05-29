@@ -147,3 +147,9 @@ contract GrimReaperHuffTest is OptimizedGrimReaperSolTest {
         assertEq(debt.balanceOf(owner), balance - 1);
     }
 }
+
+contract GrimReaperHuffV0Test is OptimizedGrimReaperSolTest {
+    function _deployGrimReaper() internal virtual override {
+        reaper = GrimReaper(HuffDeployer.deploy("GrimReaperV0"));
+    }
+}
