@@ -48,6 +48,9 @@ abstract contract GrimReaperBaseTest is Test {
         vm.assume(amount < type(uint128).max);
         deal(address(debt), address(reaper), amount, true);
 
+        vm.expectCall(
+            POOL, abi.encodeWithSelector(MockPool.liquidationCall.selector, collateral, debt, user, amount, false)
+        );
         vm.prank(owner);
         _callLiquidate(address(collateral), address(debt), user, amount);
 
@@ -69,7 +72,7 @@ abstract contract GrimReaperBaseTest is Test {
         _callLiquidate(address(collateral), address(debt), address(0xcafe), 1000);
     }
 
-    function testRecoverERC20() public {
+    function testRecoverERC20() public virtual {
         uint256 balance = 10000;
         deal(address(debt), address(reaper), balance, true);
 
@@ -108,6 +111,7 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
 
     function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) internal override {
         bytes memory payload = getLiquidationPayload(_col, _debt, _user, _debtToCover);
+
         uint256 _before = gasleft();
         (bool success,) = address(reaper).call(payload);
         uint256 _after = gasleft();
@@ -127,5 +131,19 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
 contract GrimReaperHuffTest is OptimizedGrimReaperSolTest {
     function _deployGrimReaper() internal virtual override {
         reaper = GrimReaper(HuffDeployer.deploy("GrimReaper"));
+    }
+
+    function testRecoverERC20() public override {
+        uint256 balance = 10000;
+        deal(address(debt), address(reaper), balance, true);
+
+        uint256 _before = gasleft();
+        vm.prank(owner);
+        (bool success,) = address(reaper).call(abi.encode(debt));
+        console2.log("gas usage: ", _before - gasleft());
+        require(success, "recoverERC20 failed");
+
+        assertEq(debt.balanceOf(address(reaper)), 1);
+        assertEq(debt.balanceOf(owner), balance - 1);
     }
 }

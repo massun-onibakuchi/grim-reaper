@@ -41,7 +41,7 @@
 
 /// @notice Receive profits from contract
 #define macro RECOVER_ERC20() = takes (0) returns (0) {
-    0x04 calldataload                       // [token]
+    0x00 calldataload                       // [token]
 
     // Get the balance of this contract
     STATIC_CALL_TOKEN_BALANCE_MINUS_ONE(error)        // [balance, token]
@@ -93,7 +93,7 @@
     // Memory loc      Data
     // 0x00: 095ea7b3000000000000000000000000794a61358d6845594f94dc1db02a252b
     // 0x20: 5b4814ad00000000000000000000000000000000000000000000000000000000
-   
+
      // store debtToCover at 0x24
     dup1 0x24 mstore                        // [debtToCover, user, debt, col]
     // after the operation 
@@ -108,7 +108,7 @@
     0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     dup1                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     dup8                    // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    0x1388 gas sub          // [(gas - 5000), to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
+    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     call                    // [success, debtToCover, user, debt, col]
 
     // Validate call success
@@ -129,7 +129,7 @@
     0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     dup1                    // [value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
-    0x1388 gas sub          // [(gas - 5000), to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
+    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     call                    // [success, debtToCover, user, debt, col]
 
     // Validate call success
@@ -138,7 +138,7 @@
 
 /// @notice Revert, but still (3, 3) wgmi I guess
 #define macro WAGMI() = takes (0) returns (0) {
-    0x03 dup1 revert
+    0x00 0x00 revert
 }
 // Main
 #define macro MAIN() = takes(0) returns(0) {
@@ -157,10 +157,9 @@
     // Verify that the caller is the OWNER
     caller [OWNER] eq iszero error jumpi                       // []
 
-    // Dispatcher to determine which function to execute
-    // 24 bytes call data `recoverERC20(address)`
-    calldatasize 0x24 eq recover_erc20 jumpi                   // []
-   
+    // Dispatcher to determine which function to execute based on calldata size
+    calldatasize 0x20 eq recover_erc20 jumpi                   // []
+
     // If no matching selector was found, call the liquidation function
     EXECUTE_LIQUIDATION()
 

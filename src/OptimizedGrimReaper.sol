@@ -38,10 +38,7 @@ contract OptimizedGrimReaper {
     fallback() external payable {
         assembly {
             // only the owner of this contract is allowed to call this function
-            if iszero(eq(caller(), OWNER)) {
-                // WGMI
-                revert(3, 3)
-            }
+            if iszero(eq(caller(), OWNER)) { revert(0, 0) }
 
             // We don't have function signatures sweet saving EVEN MORE GAS
 
@@ -57,28 +54,21 @@ contract OptimizedGrimReaper {
             // Call debtAsset.approve(pool, debtToCover)
 
             // approve function signature
-            // 0x7c = 124 in decimal.
-            mstore(0x7c, ERC20_APPROVE_ID)
-            // pool
-            mstore(0x80, POOL)
-            // debtToCover
-            mstore(0xa0, debtToCover)
-
-            let s1 := call(sub(gas(), 5000), debtAsset, 0, 0x7c, 0x44, 0, 0)
-            if iszero(s1) {
-                // WGMI
-                revert(3, 3)
-            }
+            mstore(0x14, POOL)
+            mstore(0x34, add(debtToCover, 0x01))
+            mstore(0x00, 0x095ea7b3000000000000000000000000) // `approve(address,uint256)`.
+            let s1 := call(gas(), debtAsset, 0, 0x10, 0x44, 0x00, 0x00) // NOTE: Ignore the return data. We don't care about `approve`'s return value.
+            if iszero(s1) { revert(0, 0) }
             // Call POOL.liquidationCall(collateralAsset, debtAsset, user, debtToCover, false)
             // liquidation function signature
-            mstore(0x7c, LIQUIDATION_CALL_ID)
-            mstore(0x80, col)
-            mstore(0xa0, debtAsset)
-            mstore(0xc0, user)
-            mstore(0xe0, debtToCover)
+            mstore(0x14, col)
+            mstore(0x34, debtAsset)
+            mstore(0x00, 0x00a718a9000000000000000000000000)
+            mstore(0x54, user)
+            mstore(0x74, debtToCover)
 
-            let s2 := call(sub(gas(), 5000), POOL, 0, 0x7c, 0x104, 0, 0)
-            if iszero(s2) { revert(3, 3) }
+            let s2 := call(gas(), POOL, 0, 0x10, 0x104, 0x00, 0x00)
+            if iszero(s2) { revert(0, 0) }
         }
     }
 
@@ -87,10 +77,7 @@ contract OptimizedGrimReaper {
     function rev4207857931( /* address token */ ) external payable {
         assembly {
             // only the owner of this contract is allowed to call this function
-            if iszero(eq(caller(), OWNER)) {
-                // WGMI
-                revert(3, 3)
-            }
+            if iszero(eq(caller(), OWNER)) { revert(0, 0) }
 
             let token := calldataload(0x04) // The token to recover.
             // Modified from Solidity's SafeTransferLib
@@ -102,7 +89,7 @@ contract OptimizedGrimReaper {
                     gt(returndatasize(), 0x1f), // At least 32 bytes returned.
                     staticcall(gas(), token, 0x1c, 0x24, 0x34, 0x20)
                 )
-            ) { revert(3, 3) }
+            ) { revert(0, 0) }
             mstore(0x14, caller()) // Store the `to` argument.
             // ignore overflow/underflow check
             mstore(0x34, sub(mload(0x34), 1)) // The `amount` is already at 0x34.
@@ -113,7 +100,7 @@ contract OptimizedGrimReaper {
                     or(eq(mload(0x00), 1), iszero(returndatasize())), // Returned 1 or nothing.
                     call(gas(), token, 0, 0x10, 0x44, 0x00, 0x20)
                 )
-            ) { revert(3, 3) }
+            ) { revert(0, 0) }
             // mstore(0x34, 0) // Restore the part of the free memory pointer that was overwritten.
             stop() // Stop the execution.
         }
