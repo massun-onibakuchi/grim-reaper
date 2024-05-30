@@ -16,7 +16,7 @@ abstract contract GrimReaperBaseTest is Test {
     GrimReaper public reaper;
 
     MockERC20 collateral = MockERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    MockERC20 debt;
+    MockERC20 debt = MockERC20(0x5f98805A4E8be255a32880FDeC7F6728C6568bA0);
     MockPool pool = MockPool(POOL);
 
     uint256 liquidationBonus = 10000;
@@ -25,7 +25,8 @@ abstract contract GrimReaperBaseTest is Test {
     function setUp() public virtual {
         MockERC20 _token = new MockERC20();
         vm.etch(address(collateral), address(_token).code);
-        debt = new MockERC20();
+        vm.etch(address(debt), address(_token).code);
+
         MockPool _pool = new MockPool();
         vm.etch(POOL, address(_pool).code);
 
@@ -161,17 +162,22 @@ contract OptimizedGrimReaperSolV2Test is OptimizedGrimReaperSolTest {
         override
         returns (bytes memory payload)
     {
-        uint8 id;
-        if (_col == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2) {
+        uint8 colId = convertTokenToId(_col);
+        uint8 debtId = convertTokenToId(_debt);
+
+        payload = abi.encodePacked(_user, uint8(colId), uint8(debtId), uint128(_debtToCover));
+    }
+
+    function convertTokenToId(address token) internal pure returns (uint8 id) {
+        if (token == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2) {
             id = 0;
-        } else if (_col == 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48) {
+        } else if (token == 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48) {
             id = 1;
-        } else if (_col == 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0) {
+        } else if (token == 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0) {
             id = 2;
         } else {
-            revert("invalid collateral");
+            revert("token is not supported");
         }
-        payload = abi.encodePacked(_debt, uint8(id), _user, uint128(_debtToCover));
     }
 }
 

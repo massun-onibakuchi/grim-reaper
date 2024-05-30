@@ -105,19 +105,19 @@ contract OptimizedGrimReaper {
     }
 }
 
-/// @notice Supports only 3 collateral assets
+/// @notice Supports only 3 collateral & debt assets
 contract OptimizedGrimReaperV2 is OptimizedGrimReaper {
     uint256 constant COLLATERAL_ASSETS_TABLE_OFFSET = 0x0C + 0x14 * 3; // 0x0C +0x14 * [number of supported collateral assetss]
 
-    /// @dev At deployment, the table of collateral assets must be appended to the runtime code of this contract
-    /// `bytes.concat(type(OptimizedGrimReaperV2).runtimeCode, collateralAssetsTable)`
-    /// where `collateralAssetsTable` is a table of collateral assets to be used in the liquidation call
-    /// The table must be in the format of: `abi.encodePacked(address[] collateralAssets)`
+    /// @dev At deployment, the table of tokens must be appended to the runtime code of this contract
+    /// `bytes.concat(type(OptimizedGrimReaperV2).runtimeCode, tokens)`
+    /// where `tokens` is a table of collateral tokens to be used in the liquidation call
+    /// The table must be in the format of: `abi.encodePacked(address[] tokens)`
     constructor() {}
 
     /// @custom:param data Custom encoded data for `liquidationCall`
-    /// @dev abi.encodePacked(address _debt, uint8 collateralId, address _user, uint128 _debtToCover)
-    /// where `collateralId` is the index of the collateral asset in the table appended to the runtime code on deployment
+    /// @dev abi.encodePacked(uint8 collateralId, uint8 debtAssetId, address _user, uint128 _debtToCover)
+    /// where id is the index of the collateral asset in the table appended to the runtime code on deployment
     fallback() external payable override {
         assembly {
             // only the owner of this contract is allowed to call this function
@@ -125,17 +125,19 @@ contract OptimizedGrimReaperV2 is OptimizedGrimReaper {
 
             // We don't have function signatures sweet saving EVEN MORE GAS
 
-            let debtAsset := shr(0x58, calldataload(0x00)) // bytes21 (address debtAsset, bytes1 collateralId)
-            let collateralId := and(debtAsset, 0xff)
-            debtAsset := shr(0x08, debtAsset) // Remove the last byte and get the address
+            let user := shr(0x50, calldataload(0x00)) // bytes22 (address user, bytes1 collateralId, bytes1 debtAssetId)
+            let collateralId := and(shr(0x08, user), 0xff)
+            let debtAssetId := and(user, 0x00ff)
             // bytes20
-            let user := shr(0x60, calldataload(0x15))
+            user := shr(0x10, user)
             // uint128
-            let debtToCover := shr(0x80, calldataload(0x29))
+            let debtToCover := shr(0x80, calldataload(0x16))
 
             // Call debtAsset.approve(pool, debtToCover)
 
-            // approve function signature
+            // Copy the collateral asset from the table
+            codecopy(0x00, add(sub(codesize(), COLLATERAL_ASSETS_TABLE_OFFSET), mul(debtAssetId, 0x14)), 0x20)
+            let debtAsset := mload(0x00)
             mstore(0x14, POOL)
             mstore(0x34, add(debtToCover, 0x01))
             mstore(0x00, 0x095ea7b3000000000000000000000000) // `approve(address,uint256)`.
@@ -146,7 +148,7 @@ contract OptimizedGrimReaperV2 is OptimizedGrimReaper {
 
             // Copy the collateral asset from the table
             codecopy(0x14, add(sub(codesize(), COLLATERAL_ASSETS_TABLE_OFFSET), mul(collateralId, 0x14)), 0x20)
-            mstore(0x34, debtAsset)
+            mstore(0x34, shr(0x60, shl(0x60, debtAsset)))
             mstore(0x00, 0x00a718a9000000000000000000000000)
             mstore(0x54, user)
             mstore(0x74, debtToCover)
