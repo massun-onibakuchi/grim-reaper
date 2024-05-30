@@ -36,14 +36,19 @@ forge test
 
 For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
 
-| Single Liquidation                             | Gas Used | Bytecode Size (kB) |
-| ---------------------------------------------- | -------- | ------------------ |
-| Solidity Contract (Optimizer runs: 200)        | 97933    | 1.005              |
-| Assembly (Optimizer runs: 200)                 | 97295    | 0.306              |
-| Huff Contract (Optimizer runs: 200)            | 97234    | 0.254              |
-| Solidity Contract (Optimizer runs: 10_000_000) | 97339    | 1.308              |
-| Assembly (Optimizer runs: 10_000_000)          | 96755    | 0.327              |
-| Huff Contract (Optimizer runs: 10_000_000)     | 96706    | 0.254              |
+| Single Liquidation (Optimizer runs: 200) | Gas Used | Bytecode Size (kB) |
+| ---------------------------------------- | -------- | ------------------ |
+| Solidity Contract                        | 97933    | 1.005              |
+| Assembly                                 | 97295    | 0.303              |
+| Assembly (GrimReaper V2)                 | 97264    | 0.317              |
+| Huff Contract                            | 97234    | 0.254              |
+
+| Single Liquidation (Optimizer runs: 10_000_000) | Gas Used | Bytecode Size (kB) |
+| ----------------------------------------------- | -------- | ------------------ |
+| Solidity Contract                               | 97339    | 1.308              |
+| Assembly                                        | 96755    | 0.330              |
+| Assembly (GrimReaper V2)                        | 96724    | 0.344              |
+| Huff Contract                                   | 96706    | 0.254              |
 
 > `66270` gas is used for the liquidation logic itself on mock Aave v3 pool.
 
@@ -55,8 +60,8 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 ## Further Optimization Ideas
 
 - Support limited kinds of collateral tokens and remove `collateral` parameter from main entrypoint
-  - O(1) selector table for token addresses
-  - Approve once on contract deployment instead of every liquidation
+  - [x] O(1) selector table for token addresses. (`GrimReaper V2`)
+  - [ ] Approve once on contract deployment instead of every liquidation
 
 ## Acknowledgements
 
