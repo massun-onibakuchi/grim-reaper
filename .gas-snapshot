@@ -1,4 +1,4 @@
-GrimReaperHuffTest:testFuzz_Liquidate(uint256,address) (runs: 257, μ: 390244, ~: 390503)
+GrimReaperHuffTest:testFuzz_Liquidate(uint256,address) (runs: 257, μ: 390235, ~: 390503)
 GrimReaperHuffTest:testLiquidate() (gas: 390412)
 GrimReaperHuffTest:testOnlyOwner(address) (runs: 257, μ: 20235, ~: 20235)
 GrimReaperHuffTest:testRecoverERC20() (gas: 330912)
