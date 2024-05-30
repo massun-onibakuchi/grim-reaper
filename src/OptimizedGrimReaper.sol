@@ -35,7 +35,7 @@ contract OptimizedGrimReaper {
     /// @dev function liquidationCall(address collateralAsset,address debtAsset,address user,uint256 debtToCover,bool receiveAToken)
     bytes4 internal constant LIQUIDATION_CALL_ID = 0x00a718a9;
 
-    fallback() external payable {
+    fallback() external payable virtual {
         assembly {
             // only the owner of this contract is allowed to call this function
             if iszero(eq(caller(), OWNER)) { revert(0, 0) }
@@ -43,13 +43,13 @@ contract OptimizedGrimReaper {
             // We don't have function signatures sweet saving EVEN MORE GAS
 
             // bytes20
-            let col := shr(96, calldataload(0x00))
+            let col := shr(0x60, calldataload(0x00))
             // bytes20
-            let debtAsset := shr(96, calldataload(0x14))
+            let debtAsset := shr(0x60, calldataload(0x14))
             // bytes20
-            let user := shr(96, calldataload(0x28))
+            let user := shr(0x60, calldataload(0x28))
             // uint128
-            let debtToCover := shr(128, calldataload(0x3c))
+            let debtToCover := shr(0x80, calldataload(0x3c))
 
             // Call debtAsset.approve(pool, debtToCover)
 
@@ -101,8 +101,58 @@ contract OptimizedGrimReaper {
                     call(gas(), token, 0, 0x10, 0x44, 0x00, 0x20)
                 )
             ) { revert(0, 0) }
-            // mstore(0x34, 0) // Restore the part of the free memory pointer that was overwritten.
-            stop() // Stop the execution.
+        }
+    }
+}
+
+/// @notice Supports only 3 collateral assets
+contract OptimizedGrimReaperV2 is OptimizedGrimReaper {
+    uint256 constant COLLATERAL_ASSETS_TABLE_OFFSET = 0x0C + 0x14 * 3; // 0x0C +0x14 * [number of supported collateral assetss]
+
+    /// @dev At deployment, the table of collateral assets must be appended to the runtime code of this contract
+    /// `bytes.concat(type(OptimizedGrimReaperV2).runtimeCode, collateralAssetsTable)`
+    /// where `collateralAssetsTable` is a table of collateral assets to be used in the liquidation call
+    /// The table must be in the format of: `abi.encodePacked(address[] collateralAssets)`
+    constructor() {}
+
+    /// @custom:param data Custom encoded data for `liquidationCall`
+    /// @dev abi.encodePacked(address _debt, uint8 collateralId, address _user, uint128 _debtToCover)
+    /// where `collateralId` is the index of the collateral asset in the table appended to the runtime code on deployment
+    fallback() external payable override {
+        assembly {
+            // only the owner of this contract is allowed to call this function
+            if iszero(eq(caller(), OWNER)) { revert(0, 0) }
+
+            // We don't have function signatures sweet saving EVEN MORE GAS
+
+            let debtAsset := shr(0x58, calldataload(0x00)) // bytes21 (address debtAsset, bytes1 collateralId)
+            let collateralId := and(debtAsset, 0xff)
+            debtAsset := shr(0x08, debtAsset) // Remove the last byte and get the address
+            // bytes20
+            let user := shr(0x60, calldataload(0x15))
+            // uint128
+            let debtToCover := shr(0x80, calldataload(0x29))
+
+            // Call debtAsset.approve(pool, debtToCover)
+
+            // approve function signature
+            mstore(0x14, POOL)
+            mstore(0x34, add(debtToCover, 0x01))
+            mstore(0x00, 0x095ea7b3000000000000000000000000) // `approve(address,uint256)`.
+            let s1 := call(gas(), debtAsset, 0, 0x10, 0x44, 0x00, 0x00) // NOTE: Ignore the return data. We don't care about `approve`'s return value.
+            if iszero(s1) { revert(0, 0) }
+
+            // Call POOL.liquidationCall(collateralAsset, debtAsset, user, debtToCover, false)
+
+            // Copy the collateral asset from the table
+            codecopy(0x14, add(sub(codesize(), COLLATERAL_ASSETS_TABLE_OFFSET), mul(collateralId, 0x14)), 0x20)
+            mstore(0x34, debtAsset)
+            mstore(0x00, 0x00a718a9000000000000000000000000)
+            mstore(0x54, user)
+            mstore(0x74, debtToCover)
+
+            let s2 := call(gas(), POOL, 0, 0x10, 0x104, 0x00, 0x00)
+            if iszero(s2) { revert(0, 0) }
         }
     }
 }
