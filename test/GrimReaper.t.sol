@@ -65,18 +65,19 @@ abstract contract GrimReaperBaseTest is Test {
         assertEq(collateral.balanceOf(address(reaper)), liquidationBonus);
     }
 
-    function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) internal virtual {
+    function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) public virtual {
         uint256 _before = gasleft();
-        reaper.execute(_col, _debt, _user, _debtToCover);
+        (bool s, ) = address(reaper).call(abi.encodeCall(reaper.execute,(_col, _debt, _user, _debtToCover)));
         uint256 _after = gasleft();
         console2.log("Gas used: ", (_before - _after));
+        require(s, "ExpectRevert: liquidation failed");
     }
 
     function testRevertIfLiquidationFail() public {
         pool.setLiquidation(false);
-        vm.expectRevert();
+        vm.expectRevert("ExpectRevert: liquidation failed");
         vm.prank(owner);
-        _callLiquidate(address(collateral), address(debt), address(0xcafe), 1000);
+        this._callLiquidate(address(collateral), address(debt), address(0xcafe), 1000);
     }
 
     function testRecoverERC20() public virtual {
@@ -116,14 +117,14 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
         reaper = GrimReaper(address(new OptimizedGrimReaper()));
     }
 
-    function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) internal override {
+    function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) public override {
         bytes memory payload = getLiquidationPayload(_col, _debt, _user, _debtToCover);
 
         uint256 _before = gasleft();
         (bool success,) = address(reaper).call(payload);
         uint256 _after = gasleft();
         console2.log("Gas used: ", (_before - _after));
-        require(success, "liquidation failed");
+        require(success, "ExpectRevert: liquidation failed");
     }
 
     function getLiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)

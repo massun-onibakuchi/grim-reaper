@@ -41,14 +41,14 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 | Solidity Contract                        | 97933    | 1.005              |
 | Assembly                                 | 97295    | 0.303              |
 | Assembly (GrimReaper V2)                 | 97264    | 0.317              |
-| Huff Contract                            | 97234    | 0.254              |
+| Huff Contract                            | 97234    | 0.245              |
 
 | Single Liquidation (Optimizer runs: 10_000_000) | Gas Used | Bytecode Size (kB) |
 | ----------------------------------------------- | -------- | ------------------ |
 | Solidity Contract                               | 97339    | 1.308              |
 | Assembly                                        | 96755    | 0.330              |
 | Assembly (GrimReaper V2)                        | 96724    | 0.344              |
-| Huff Contract                                   | 96706    | 0.254              |
+| Huff Contract                                   | 96706    | 0.245              |
 
 > `66270` gas is used for the liquidation logic itself on mock Aave v3 pool.
 

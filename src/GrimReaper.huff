@@ -32,9 +32,11 @@
     staticcall                              // [success, token]
 
     // Validate successful call
-    iszero error jumpi                      // [token]
-    0x00 mload                              // [balance, token]
-    0x01 swap1 sub                          // [(balance - 1), token]
+    dup1                                    // [success, success, token]
+    iszero error jumpi                      // [success=1, token]
+    // At this point, `success` is 1, so we can think this boolean as number 1
+    0x00 mload                              // [balance, 1, token]
+    sub                                     // [(balance - 1), token]
 }
 
 /// @notice Receive profits from contract
@@ -166,6 +168,4 @@
         RECOVER_ERC20()
     error: 
         WAGMI()
-
-    WAGMI()
 }
