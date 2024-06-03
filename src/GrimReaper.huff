@@ -18,7 +18,7 @@
 /// @notice Fetches the token balance of the caller for the provided token
 /// @notice Stack Input: [token]
 /// @notice Stack Output: [balance, token]
-#define macro STATIC_CALL_TOKEN_BALANCE_MINUS_ONE() = takes (0) returns (2) {
+#define macro GET_TOKEN_BALANCE_MINUS_ONE() = takes (0) returns (2) {
     // Static Call token.balanceOf(address(this))
     __FUNC_SIG(balanceOf) 0x00 mstore       // [token]
     address 0x20 mstore                     // [token]
@@ -44,7 +44,7 @@
     0x00 calldataload                       // [token]
 
     // Get the balance of this contract
-    STATIC_CALL_TOKEN_BALANCE_MINUS_ONE() // [(balance - 1), token]
+    GET_TOKEN_BALANCE_MINUS_ONE() // [(balance - 1), token]
 
     // Call token.transfer(msg.sender, balance - 1)
     caller 0x14 mstore                      // [(balance - 1), token]
