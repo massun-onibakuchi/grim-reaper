@@ -62,6 +62,8 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 - Support limited kinds of collateral tokens and remove `collateral` parameter from main entrypoint
   - [x] O(1) selector table for token addresses. (`GrimReaper V2`)
   - [ ] Approve once on contract deployment instead of every liquidation
+- Replace `jumpi` with other operations
+  - [x] Use `mload(type(uint256).max)` for `jumpi` if-else-revert pattern (`GrimReaperHuff`)
 
 ## Acknowledgements
 
