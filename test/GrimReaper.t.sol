@@ -58,16 +58,19 @@ abstract contract GrimReaperBaseTest is Test {
         vm.expectCall(
             POOL, abi.encodeWithSelector(MockPool.liquidationCall.selector, collateral, debt, user, amount, false)
         );
-        vm.prank(owner);
-        _callLiquidate(address(collateral), address(debt), user, amount);
+        _callLiquidate(owner, address(collateral), address(debt), user, amount);
 
         assertEq(debt.balanceOf(address(reaper)), 0);
         assertEq(collateral.balanceOf(address(reaper)), liquidationBonus);
     }
 
-    function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) public virtual {
+    function _callLiquidate(address caller, address _col, address _debt, address _user, uint256 _debtToCover)
+        public
+        virtual
+    {
         uint256 _before = gasleft();
-        (bool s, ) = address(reaper).call(abi.encodeCall(reaper.execute,(_col, _debt, _user, _debtToCover)));
+        vm.prank(caller);
+        (bool s,) = address(reaper).call(abi.encodeCall(reaper.execute, (_col, _debt, _user, _debtToCover)));
         uint256 _after = gasleft();
         console2.log("Gas used: ", (_before - _after));
         require(s, "ExpectRevert: liquidation failed");
@@ -76,8 +79,7 @@ abstract contract GrimReaperBaseTest is Test {
     function testRevertIfLiquidationFail() public {
         pool.setLiquidation(false);
         vm.expectRevert("ExpectRevert: liquidation failed");
-        vm.prank(owner);
-        this._callLiquidate(address(collateral), address(debt), address(0xcafe), 1000);
+        this._callLiquidate(owner, address(collateral), address(debt), address(0xcafe), 1000);
     }
 
     function testRecoverERC20() public virtual {
@@ -97,8 +99,7 @@ abstract contract GrimReaperBaseTest is Test {
         vm.assume(non_user != owner);
 
         vm.expectRevert();
-        vm.prank(non_user);
-        _callLiquidate(address(collateral), address(debt), address(0xcafe), 1000);
+        _callLiquidate(non_user, address(collateral), address(debt), address(0xcafe), 1000);
 
         vm.expectRevert();
         vm.prank(non_user);
@@ -117,10 +118,14 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
         reaper = GrimReaper(address(new OptimizedGrimReaper()));
     }
 
-    function _callLiquidate(address _col, address _debt, address _user, uint256 _debtToCover) public override {
+    function _callLiquidate(address caller, address _col, address _debt, address _user, uint256 _debtToCover)
+        public
+        override
+    {
         bytes memory payload = getLiquidationPayload(_col, _debt, _user, _debtToCover);
 
         uint256 _before = gasleft();
+        vm.prank(caller);
         (bool success,) = address(reaper).call(payload);
         uint256 _after = gasleft();
         console2.log("Gas used: ", (_before - _after));
