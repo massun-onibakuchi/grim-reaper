@@ -33,9 +33,9 @@
 
     // Validate successful call
     dup1                                    // [success, success, token]
-    iszero error jumpi                      // [success=1, token]
-    // At this point, `success` is 1, so we can think this boolean as number 1
-    0x00 mload                              // [balance, 1, token]
+    IF_FALSE_REVERT_BY_BURNING_GAS()        // [mload(0x00), success, token]
+    // At this point, `success` is 1, so we can think this boolean as number 1.
+    // mload(0x00) is the return value of the static call, which is the balance of the token.
     sub                                     // [(balance - 1), token]
 }
 
@@ -61,7 +61,8 @@
     call                                    // [success, token]
 
     // Validate call success
-    iszero error jumpi stop
+    IF_FALSE_REVERT_BY_BURNING_GAS() pop
+    stop
 }
 
 /// @notice Entry point for liquidation call 
@@ -112,7 +113,8 @@
     call                    // [success, debtToCover, user, debt, col]
 
     // Validate call success
-    iszero error jumpi      // [debtToCover, user, debt, col]
+    // If the call was not successful, then run `mload(success - 0x01)` and consume all gas to revert
+    IF_FALSE_REVERT_BY_BURNING_GAS() pop
 
     // Call POOL.liquidationCall(collateralAsset, debtAsset, user, debtToCover, false)
     __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   //  [debtToCover, user, debt, col]
@@ -122,18 +124,28 @@
     0x04 mstore                                        // []
     0x00 0x84 mstore                                   // []
 
+    0x01                    // [0x01]
     // Execute the call
-    0x00                    // [retSize]
-    0x00                    // [retOffset, retSize]
-    0x104                   // [argSize, retOffset, retSize]
-    0x00                    // [argOffset, argSize, retOffset, retSize]
-    0x00                    // [value, argOffset, argSize, retOffset, retSize]
-    [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize]
-    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize]
-    call                    // [success]
+    0x00                    // [retSize, 0x01]
+    0x00                    // [retOffset, retSize, 0x01]
+    0x104                   // [argSize, retOffset, retSize, 0x01]
+    0x00                    // [argOffset, argSize, retOffset, retSize, 0x01]
+    0x00                    // [value, argOffset, argSize, retOffset, retSize, 0x01]
+    [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, 0x01]
+    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, 0x01]
+    call                    // [success, 0x01]
 
     // Validate call success
-    iszero error jumpi stop
+    sub                     // [success - 1]
+    mload
+    stop
+}
+
+
+#define macro IF_FALSE_REVERT_BY_BURNING_GAS() = takes (1) returns (1) {
+                    // [success]
+    0x01 swap1 sub  // [0 (if true), type(uint256).max (if false)]
+    mload           // [mload(0x00)]
 }
 
 /// @notice Revert, but still (3, 3) wgmi I guess
@@ -155,8 +167,10 @@
         dup1 __FUNC_SIG(recoverERC20) eq recover_erc20 jumpi     // [selector]
     */
 
-    // Verify that the caller is the OWNER
-    caller [OWNER] eq iszero error jumpi                       // []
+    // Verify that the caller is the OWNER.
+    // Run `mload(isOwner - 0x01)` and revert if caller is not owner.
+    caller [OWNER] eq
+    IF_FALSE_REVERT_BY_BURNING_GAS() pop                         // []
 
     // Dispatcher to determine which function to execute based on calldata size
     calldatasize 0x20 eq recover_erc20 jumpi                   // []
