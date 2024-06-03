@@ -180,6 +180,4 @@
 
     recover_erc20:
         RECOVER_ERC20()
-    error: 
-        WAGMI()
 }
