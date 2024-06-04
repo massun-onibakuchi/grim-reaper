@@ -67,7 +67,7 @@ contract OptimizedGrimReaper {
             mstore(0x54, user)
             mstore(0x74, debtToCover)
 
-            let s2 := call(gas(), POOL, 0, 0x10, 0x104, 0x00, 0x00)
+            let s2 := call(gas(), POOL, 0, 0x10, 0xa4, 0x00, 0x00)
             if iszero(s2) { revert(0, 0) }
         }
     }
@@ -151,7 +151,7 @@ contract OptimizedGrimReaperV2 is OptimizedGrimReaper {
             mstore(0x54, user)
             mstore(0x74, debtToCover)
 
-            let s2 := call(gas(), POOL, 0, 0x10, 0x104, 0x00, 0x00)
+            let s2 := call(gas(), POOL, 0, 0x10, 0xa4, 0x00, 0x00)
             if iszero(s2) { revert(0, 0) }
         }
     }

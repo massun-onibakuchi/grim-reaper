@@ -19,11 +19,12 @@
 /// @notice Stack Input: [token]
 /// @notice Stack Output: [balance, token]
 #define macro GET_TOKEN_BALANCE_MINUS_ONE() = takes (0) returns (2) {
-    // Static Call token.balanceOf(address(this))
+    // Staticcall token.balanceOf(address(this))
+    // Note: `calldatasize` is 0x20
     __FUNC_SIG(balanceOf) 0x00 mstore       // [token]
-    address 0x20 mstore                     // [token]
+    address calldatasize mstore             // [token]
 
-    0x20                                    // [retSize, token]
+    calldatasize                            // [retSize, token]
     0x00                                    // [retOffset, retSize, token]
     0x24                                    // [argSize, retOffset, retSize, token]
     0x1c                                    // [argOffset, argSize, retOffset, retSize, token]
@@ -122,13 +123,14 @@
     0x44 mstore                                        // [debt, col]
     0x24 mstore                                        // [col]
     0x04 mstore                                        // []
-    0x00 0x84 mstore                                   // []
+    // Skip `mstore(0x84, false)` because memory is already zeroed
+    // 0x00 0x84 mstore                                   // []
 
     0x01                    // [0x01]
     // Execute the call
     0x00                    // [retSize, 0x01]
     0x00                    // [retOffset, retSize, 0x01]
-    0x104                   // [argSize, retOffset, retSize, 0x01]
+    0xa4                    // [argSize, retOffset, retSize, 0x01]
     0x00                    // [argOffset, argSize, retOffset, retSize, 0x01]
     0x00                    // [value, argOffset, argSize, retOffset, retSize, 0x01]
     [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, 0x01]
