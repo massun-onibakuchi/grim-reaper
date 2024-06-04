@@ -73,12 +73,12 @@ abstract contract GrimReaperBaseTest is Test {
         (bool s,) = address(reaper).call(abi.encodeCall(reaper.execute, (_col, _debt, _user, _debtToCover)));
         uint256 _after = gasleft();
         console2.log("Gas used: ", (_before - _after));
-        require(s, "ExpectRevert: liquidation failed");
+        require(s, "liquidation failed");
     }
 
     function testRevertIfLiquidationFail() public {
         pool.setLiquidation(false);
-        vm.expectRevert("ExpectRevert: liquidation failed");
+        vm.expectRevert("liquidation failed");
         this._callLiquidate(owner, address(collateral), address(debt), address(0xcafe), 1000);
     }
 
@@ -129,7 +129,7 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
         (bool success,) = address(reaper).call(payload);
         uint256 _after = gasleft();
         console2.log("Gas used: ", (_before - _after));
-        require(success, "ExpectRevert: liquidation failed");
+        require(success, "liquidation failed");
     }
 
     function getLiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
