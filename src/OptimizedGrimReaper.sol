@@ -35,6 +35,7 @@ contract OptimizedGrimReaper {
     /// @dev function liquidationCall(address collateralAsset,address debtAsset,address user,uint256 debtToCover,bool receiveAToken)
     bytes4 internal constant LIQUIDATION_CALL_ID = 0x00a718a9;
 
+    /// @dev Dispatching function calls manually saves tiny gas. It's not much worth it.
     fallback() external payable virtual {
         assembly {
             // only the owner of this contract is allowed to call this function

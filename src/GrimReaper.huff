@@ -145,6 +145,7 @@
 
 
 /// @dev Read memory at 0x00 will trigger a memory expansion if the memory location is not already allocated.
+/// @dev Consumes all gas if the condition `success` is false.
 #define macro IF_FALSE_REVERT_BY_BURNING_GAS() = takes (1) returns (1) {
                     // [success]
     0x01 swap1 sub  // [0 (if true), type(uint256).max (if false)]

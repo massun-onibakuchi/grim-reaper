@@ -64,7 +64,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
   - [ ] Approve once on contract deployment instead of every liquidation
 - Replace `jumpi` with other operations
   - [x] Use `mload(type(uint256).max)` for `jumpi` if-else-revert pattern (`GrimReaperHuff`)
-- [x] Abuse `returndatasize`, `calldatasize`, `chainid` and `msize` for `push` operations
+- [x] Abuse `returndatasize`, `calldatasize`, `chainid` and `msize` for `push` operations (`GrimReaperHuff`)
 
 ## Acknowledgements
 
