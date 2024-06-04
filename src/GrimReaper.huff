@@ -157,18 +157,6 @@
 
 // Main
 #define macro MAIN() = takes(0) returns(0) {
-    // here we dispatch based on the size of calldata instead of the function selector
-    /*  
-        // pc = 0 there 100% of the time 
-        // so its just a way to save a very very small amount of gas (1 gas)
-        // Get the function selector
-        // load 32 bytes starting from position 0 onto the stack (if the calldata is less than 32 bytes then it will be right padded with zeros). 
-        // 0xE0 shr right shifts the calldata by 224 bits,
-        // leaving 32 bits or 4 bytes remaining on the stack.
-        pc calldataload 0xe0 shr                                 // [func_sig]
-        dup1 __FUNC_SIG(recoverERC20) eq recover_erc20 jumpi     // [selector]
-    */
-
     // Verify that the caller is the OWNER.
     // Run `mload(isOwner - 0x01)` and revert if caller is not owner.
     caller [OWNER] eq
