@@ -26,7 +26,7 @@
 
     calldatasize                            // [retSize, token]
     0x00                                    // [retOffset, retSize, token]
-    0x24                                    // [argSize, retOffset, retSize, token]
+    msize                                    // [argSize=0x24, retOffset, retSize, token]
     0x1c                                    // [argOffset, argSize, retOffset, retSize, token]
     dup5                                    // [to=token, argOffset, argSize, retOffset, retSize, token]
     gas                                     // [gas, to=token, argOffset, argSize, retOffset, retSize, token]
@@ -106,7 +106,7 @@
 
     0x00                    // [retSize, debtToCover, user, debt, col]
     0x00                    // [retOffset, retSize, debtToCover, user, debt, col]
-    0x44                    // [argSize, retOffset, retSize, debtToCover, user, debt, col]
+    msize                   // [argSize=0x44, retOffset, retSize, debtToCover, user, debt, col]
     0x00                    // [argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     0x00                    // [value=0, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
     dup8                    // [to=debt, value, argOffset, argSize, retOffset, retSize, debtToCover, user, debt, col]
@@ -144,15 +144,11 @@
 }
 
 
+/// @dev Read memory at 0x00 will trigger a memory expansion if the memory location is not already allocated.
 #define macro IF_FALSE_REVERT_BY_BURNING_GAS() = takes (1) returns (1) {
                     // [success]
     0x01 swap1 sub  // [0 (if true), type(uint256).max (if false)]
     mload           // [mload(0x00)]
-}
-
-/// @notice Revert, but still (3, 3) wgmi I guess
-#define macro WAGMI() = takes (0) returns (0) {
-    0x00 0x00 revert
 }
 
 // Main
@@ -163,7 +159,8 @@
     IF_FALSE_REVERT_BY_BURNING_GAS() pop                         // []
 
     // Dispatcher to determine which function to execute based on calldata size
-    calldatasize 0x20 eq recover_erc20 jumpi                   // []
+    // At this point, the memory is expanded to 0x20 by `IF_FALSE_REVERT_BY_BURNING_GAS()`
+    calldatasize msize eq recover_erc20 jumpi                   // []
 
     // If no matching selector was found, call the liquidation function
     EXECUTE_LIQUIDATION()
