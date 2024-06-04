@@ -41,14 +41,14 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 | Solidity Contract                        | 98783    | 1.005              |
 | Assembly                                 | 97679    | 0.303              |
 | Assembly (GrimReaper V2)                 | 97648    | 0.317              |
-| Huff Contract                            | 97599    | 0.234              |
+| Huff Contract                            | 97597    | 0.231              |
 
 | Single Liquidation (Optimizer runs: 10_000_000) | Gas Used | Bytecode Size (kB) |
 | ----------------------------------------------- | -------- | ------------------ |
 | Solidity Contract                               | 98127    | 1.308              |
 | Assembly                                        | 97089    | 0.330              |
 | Assembly (GrimReaper V2)                        | 97058    | 0.344              |
-| Huff Contract                                   | 97021    | 0.234              |
+| Huff Contract                                   | 97019    | 0.231              |
 
 > `66270` gas is used for the liquidation logic itself on mock Aave v3 pool.
 
@@ -64,6 +64,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
   - [ ] Approve once on contract deployment instead of every liquidation
 - Replace `jumpi` with other operations
   - [x] Use `mload(type(uint256).max)` for `jumpi` if-else-revert pattern (`GrimReaperHuff`)
+- [x] Abuse `returndatasize`, `calldatasize`, `chainid` and `msize` for `push` operations
 
 ## Acknowledgements
 
