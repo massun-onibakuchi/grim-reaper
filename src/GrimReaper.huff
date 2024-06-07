@@ -118,7 +118,7 @@
     IF_FALSE_REVERT_BY_BURNING_GAS() pop
 
     // Call POOL.liquidationCall(collateralAsset, debtAsset, user, debtToCover, false)
-    __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   //  [debtToCover, user, debt, col]
+    __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   // [debtToCover, user, debt, col]
     0x64 mstore                                        // [user, debt, col]
     0x44 mstore                                        // [debt, col]
     0x24 mstore                                        // [col]
