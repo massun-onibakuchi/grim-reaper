@@ -1,0 +1,179 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// Interface
+#define function approve(address spender, uint256 value) nonpayable returns (bool)
+#define function balanceOf(address) view returns (uint256)
+#define function transfer(address,uint256) nonpayable returns ()
+
+#define function recoverERC20(address) nonpayable returns ()
+#define function liquidationCall(address collateralAsset,address debtAsset,address user,uint256 debtToCover,bool receiveAToken) nonpayable returns ()
+
+// Storage and constants
+#define constant OWNER = 0x0000000000000000000000000000000000000003
+#define constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD
+#define constant TRANSFER_SELECTOR = 0xa9059cbb000000000000000000000000
+#define constant COLLATERAL_ASSETS_TABLE_OFFSET = 0x60 // 0x20 * 3
+
+// ref: https://github.com/abigger87/subway-rs/blob/ee51bbca28503174acc6ae6d1f9723be262d884d/contracts/src/Sandwich.huff
+
+/// @notice Fetches the token balance of the caller for the provided token
+/// @notice Stack Input: [token]
+/// @notice Stack Output: [balance, token]
+#define macro GET_TOKEN_BALANCE_MINUS_ONE() = takes (0) returns (2) {
+    // Staticcall token.balanceOf(address(this))
+    // Note: `calldatasize` is 0x20
+    __FUNC_SIG(balanceOf) 0x00 mstore       // [token]
+    address calldatasize mstore             // [token]
+
+    calldatasize                            // [retSize, token]
+    0x00                                    // [retOffset, retSize, token]
+    msize                                    // [argSize=0x24, retOffset, retSize, token]
+    0x1c                                    // [argOffset, argSize, retOffset, retSize, token]
+    dup5                                    // [to=token, argOffset, argSize, retOffset, retSize, token]
+    gas                                     // [gas, to=token, argOffset, argSize, retOffset, retSize, token]
+    staticcall                              // [success, token]
+
+    // Validate successful call
+    dup1                                    // [success, success, token]
+    IF_FALSE_REVERT_BY_BURNING_GAS()        // [mload(0x00), success, token]
+    // At this point, `success` is 1, so we can think this boolean as number 1.
+    // mload(0x00) is the return value of the static call, which is the balance of the token.
+    sub                                     // [(balance - 1), token]
+}
+
+/// @notice Receive profits from contract
+#define macro RECOVER_ERC20() = takes (0) returns (0) {
+    0x00 calldataload                       // [token]
+
+    // Get the balance of this contract
+    GET_TOKEN_BALANCE_MINUS_ONE() // [(balance - 1), token]
+
+    // Call token.transfer(msg.sender, balance - 1)
+    caller 0x14 mstore                      // [(balance - 1), token]
+    0x34 mstore                             // [token]
+    [TRANSFER_SELECTOR] 0x00 mstore         // [(balance - 1), token]
+
+    0x00                                    // [retSize=0, token]
+    0x00                                    // [retOffset=0, retSize, token]
+    0x44                                    // [argSize, retOffset, retSize, token]
+    0x10                                    // [argOffset, argSize, retOffset, retSize, token]
+    0x00                                    // [value=0, argOffset, argSize, retOffset, retSize, token]
+    dup6                                    // [to=token, value, argOffset, argSize, retOffset, retSize, token]
+    gas                                     // [gas, to, value, argOffset, argSize, retOffset, retSize, token]
+    call                                    // [success, token]
+
+    // Validate call success
+    IF_FALSE_REVERT_BY_BURNING_GAS() pop
+    stop
+}
+
+/// @notice Entry point for liquidation call 
+/// @dev calldata [debtAsset, uint8 collateralId, address user, uint128 debtToCover]
+/// calldata is encoded with abi.encodePacked(collateralAsset,debtAsset,user,debtToCover) 
+///https://docs.soliditylang.org/en/v0.8.17/abi-spec.html#non-standard-packed-mode
+#define macro EXECUTE_LIQUIDATION() = takes(0) returns(0) {
+    // input stack: []
+
+    // Unpack the calldata
+    // bytes20, bytes1, bytes20, bytes16
+    // calldata is encoded with abi.encodePacked(address debt, uint8 collateralId, address user, uint128 debtToCover)
+    0x29 calldataload 0x80 shr               // [debtToCover] - uint128
+    // 0x15 calldataload 0x60 shr               // [user, debt, collateralId] - bytes 20
+    0x15 calldataload 0x60 shr               // [user, debtToCover] - bytes 20
+    0x00 calldataload 0x58 shr               // [debtAndId, user, debtToCover] - bytes 21
+    dup1 0xff and                            // [collateralId, debtAndId, user, debtToCover] - uint8
+    swap1 0x08 shr                           // [debt, collateralId, user, debtToCover] - bytes 20
+
+    // Call debtAsset.approve(pool, debtToCover)
+    // e.g. approve(address POOL,uint256 1000+1)
+    // store func sig at 0x00
+    __FUNC_SIG(approve) 0xe0 shl             // [func_sig, debt, collateralId, user, debtToCover]
+    0x00 mstore                              // [debt, collateralId, user, debtToCover]
+    // after the operation 
+    // Memory loc      Data
+    // 0x00: 095ea7b300000000000000000000000000000000000000000000000000000000
+    
+    // store POOL address at 0x04
+    [POOL] 0x04 mstore                       // [debt, collateralId, user, debtToCover]
+    // after the operation 
+    // Memory loc      Data
+    // 0x00: 095ea7b3000000000000000000000000794a61358d6845594f94dc1db02a252b
+    // 0x20: 5b4814ad00000000000000000000000000000000000000000000000000000000
+
+     // store debtToCover at 0x24
+    dup4 0x01 add 0x24 mstore                // [debt, collateralId, user, debtToCover]
+    // after the operation 
+    // Memory loc      Data
+    // 0x00: 095ea7b3000000000000000000000000794a61358d6845594f94dc1db02a252b
+    // 0x20: 5b4814ad00000000000000000000000000000000000000000000000000000000
+    // 0x40: 000003e800000000000000000000000000000000000000000000000000000000
+
+    0x00                    // [retSize, debt, collateralId, user, debtToCover]
+    0x00                    // [retOffset, retSize, debt, collateralId, user, debtToCover]
+    msize                   // [argSize=0x44, retOffset, retSize, debt, collateralId, user, debtToCover]
+    0x00                    // [argOffset, argSize, retOffset, retSize, debt, collateralId, user, debtToCover]
+    0x00                    // [value=0, argOffset, argSize, retOffset, retSize, debt, collateralId, user, debtToCover]
+    dup6                    // [to=debt, value, argOffset, argSize, retOffset, retSize, debt, collateralId, user, debtToCover]
+    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, debt, collateralId, user, debtToCover]
+    call                    // [success, debt, collateralId, user, debtToCover]
+
+    // Validate call success
+    // If the call was not successful, then run `mload(success - 0x01)` and consume all gas to revert
+    IF_FALSE_REVERT_BY_BURNING_GAS() pop              // [debt, collateralId, user, debtToCover]
+
+    // Call POOL.liquidationCall(collateralAsset, debt, user, debtToCover, false)
+    __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   // [debt, collateralId, user, debtToCover]
+    0x24 mstore                                        // [collateralId, user, debtToCover]
+    // Copy the collateral asset address to memory from a table appended to the bytecode
+    0x20 mul                                           // [0x20 * collateralId, user, debtToCover]
+    0x20 swap1                                         // [0x20 * collateralId, 0x20, user, debtToCover]
+    [COLLATERAL_ASSETS_TABLE_OFFSET] codesize sub      // [codesize - offset, 0x14 * collateralId, 0x20, user, debtToCover]
+    add                                                // [add(codesize - offset, 0x14 * collateralId), 0x20, user, debtToCover]
+    0x04 codecopy                                      // [user, debtToCover]
+
+    0x44 mstore                                        // [user, debtToCover]
+    0x64 mstore                                        // [debtToCover]
+
+    0x01
+    // Execute the call
+    0x00                    // [retSize, 0x01]
+    0x00                    // [retOffset, retSize, 0x01]
+    0xa4                    // [argSize, retOffset, retSize, 0x01]
+    0x00                    // [argOffset, argSize, retOffset, retSize, 0x01]
+    0x00                    // [value, argOffset, argSize, retOffset, retSize, 0x01]
+    [POOL]                  // [to, value, argOffset, argSize, retOffset, retSize, 0x01]
+    gas                     // [gas, to, value, argOffset, argSize, retOffset, retSize, 0x01]
+    call                    // [success, 0x01]
+
+    // Validate call success
+    sub                     // [success - 1]
+    mload
+    stop
+}
+
+
+/// @dev Read memory at 0x00 will trigger a memory expansion if the memory location is not already allocated.
+/// @dev Consumes all gas if the condition `success` is false.
+#define macro IF_FALSE_REVERT_BY_BURNING_GAS() = takes (1) returns (1) {
+                    // [success]
+    0x01 swap1 sub  // [0 (if true), type(uint256).max (if false)]
+    mload           // [mload(0x00)]
+}
+
+// Main
+#define macro MAIN() = takes(0) returns(0) {
+    // Verify that the caller is the OWNER.
+    // Run `mload(isOwner - 0x01)` and revert if caller is not owner.
+    caller [OWNER] eq
+    IF_FALSE_REVERT_BY_BURNING_GAS() pop                         // []
+
+    // Dispatcher to determine which function to execute based on calldata size
+    // At this point, the memory is expanded to 0x20 by `IF_FALSE_REVERT_BY_BURNING_GAS()`
+    calldatasize msize eq recover_erc20 jumpi                   // []
+
+    // If no matching selector was found, call the liquidation function
+    EXECUTE_LIQUIDATION()
+
+    recover_erc20:
+        RECOVER_ERC20()
+}
