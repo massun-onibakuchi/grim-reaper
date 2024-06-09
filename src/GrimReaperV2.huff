@@ -125,10 +125,10 @@
     __FUNC_SIG(liquidationCall) 0xe0 shl 0x00 mstore   // [debt, collateralId, user, debtToCover]
     0x24 mstore                                        // [collateralId, user, debtToCover]
     // Copy the collateral asset address to memory from a table appended to the bytecode
-    0x20 mul                                           // [0x20 * collateralId, user, debtToCover]
-    0x20 swap1                                         // [0x20 * collateralId, 0x20, user, debtToCover]
-    [COLLATERAL_ASSETS_TABLE_OFFSET] codesize sub      // [codesize - offset, 0x14 * collateralId, 0x20, user, debtToCover]
-    add                                                // [add(codesize - offset, 0x14 * collateralId), 0x20, user, debtToCover]
+    0x20 swap1                                         // [collateralId, 0x20, user, debtToCover]
+    dup2 mul                                           // [0x20 * collateralId, 0x20, user, debtToCover]
+    [COLLATERAL_ASSETS_TABLE_OFFSET] codesize sub      // [codesize - offset, 0x20 * collateralId, 0x20, user, debtToCover]
+    add                                                // [add(codesize - offset, 0x20 * collateralId), 0x20, user, debtToCover]
     0x04 codecopy                                      // [user, debtToCover]
 
     0x44 mstore                                        // [user, debtToCover]
