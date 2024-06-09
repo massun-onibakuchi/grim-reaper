@@ -143,22 +143,39 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
 }
 
 contract Deployer {
-    constructor(bytes memory table) {
-        bytes memory solidityCode = type(OptimizedGrimReaperV2).runtimeCode;
-        bytes memory code = bytes.concat(solidityCode, table);
+    constructor(bytes memory runtimeCode, bytes memory table) {
+        bytes memory code = bytes.concat(runtimeCode, table);
         assembly {
             return(add(code, 32), mload(code))
         }
     }
 }
 
-contract OptimizedGrimReaperSolV2Test is OptimizedGrimReaperSolTest {
-    /// @dev abi.encodePacked(WETH, USDC, LUSD);
-    bytes constant COLLATERAL_ASSET_TABLE =
-        hex"C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB485f98805A4E8be255a32880FDeC7F6728C6568bA0";
+function getGrimReaperV2LiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
+    pure
+    returns (bytes memory payload)
+{
+    uint8 id;
+    if (_col == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2) {
+        id = 0;
+    } else if (_col == 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48) {
+        id = 1;
+    } else if (_col == 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0) {
+        id = 2;
+    } else {
+        revert("invalid collateral");
+    }
+    payload = abi.encodePacked(_debt, uint8(id), _user, uint128(_debtToCover));
+}
 
+/// @dev abi.encodePacked(WETH, USDC, LUSD);
+bytes constant COLLATERAL_ASSET_TABLE =
+    hex"C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB485f98805A4E8be255a32880FDeC7F6728C6568bA0";
+
+contract OptimizedGrimReaperSolV2Test is OptimizedGrimReaperSolTest {
     function _deployGrimReaper() internal override {
-        reaper = GrimReaper(address(new Deployer(COLLATERAL_ASSET_TABLE)));
+        bytes memory solidityCode = type(OptimizedGrimReaperV2).runtimeCode;
+        reaper = GrimReaper(address(new Deployer(solidityCode, COLLATERAL_ASSET_TABLE)));
     }
 
     function getLiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
@@ -167,17 +184,7 @@ contract OptimizedGrimReaperSolV2Test is OptimizedGrimReaperSolTest {
         override
         returns (bytes memory payload)
     {
-        uint8 id;
-        if (_col == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2) {
-            id = 0;
-        } else if (_col == 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48) {
-            id = 1;
-        } else if (_col == 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0) {
-            id = 2;
-        } else {
-            revert("invalid collateral");
-        }
-        payload = abi.encodePacked(_debt, uint8(id), _user, uint128(_debtToCover));
+        payload = getGrimReaperV2LiquidationPayload(_col, _debt, _user, _debtToCover);
     }
 }
 
@@ -198,5 +205,28 @@ contract GrimReaperHuffTest is OptimizedGrimReaperSolTest {
 
         assertEq(debt.balanceOf(address(reaper)), 1);
         assertEq(debt.balanceOf(owner), balance - 1);
+    }
+}
+
+contract GrimReaperHuffV2Test is GrimReaperHuffTest {
+    /// @dev abi.encode(WETH, USDC, LUSD);
+    bytes constant COLLATERAL_ASSET_TABLE_HUFF = abi.encode(
+        0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
+        0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,
+        0x5f98805A4E8be255a32880FDeC7F6728C6568bA0
+    );
+
+    function _deployGrimReaper() internal virtual override {
+        bytes memory code = HuffDeployer.deploy("GrimReaperV2").code;
+        reaper = GrimReaper(address(new Deployer(code, COLLATERAL_ASSET_TABLE_HUFF)));
+    }
+
+    function getLiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
+        internal
+        pure
+        override
+        returns (bytes memory payload)
+    {
+        payload = getGrimReaperV2LiquidationPayload(_col, _debt, _user, _debtToCover);
     }
 }
