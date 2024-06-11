@@ -107,7 +107,7 @@ contract OptimizedGrimReaper {
 }
 
 /// @notice Supports only 3 collateral assets
-contract OptimizedGrimReaperV2 is OptimizedGrimReaper {
+contract OptimizedGrimReaperL2 is OptimizedGrimReaper {
     uint256 constant COLLATERAL_ASSETS_TABLE_OFFSET = 0x0C + 0x14 * 3; // 0x0C +0x14 * [number of supported collateral assetss]
 
     /// @dev At deployment, the table of collateral assets must be appended to the runtime code of this contract

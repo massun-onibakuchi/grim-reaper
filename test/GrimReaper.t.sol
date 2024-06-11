@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import {IGasMeter} from "./IGasMeter.sol";
 
 import {GrimReaper} from "../src/GrimReaper.sol";
-import {OptimizedGrimReaper, OptimizedGrimReaperV2} from "../src/OptimizedGrimReaper.sol";
+import {OptimizedGrimReaper, OptimizedGrimReaperL2} from "../src/OptimizedGrimReaper.sol";
 import {MockERC20} from "./MockERC20.sol";
 import {MockPool} from "./MockPool.sol";
 
@@ -171,7 +171,7 @@ contract Deployer {
     }
 }
 
-function getGrimReaperV2LiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
+function getGrimReaperL2LiquidationPayload(address _col, address _debt, address _user, uint256 _debtToCover)
     pure
     returns (bytes memory payload)
 {
@@ -192,9 +192,9 @@ function getGrimReaperV2LiquidationPayload(address _col, address _debt, address 
 bytes constant COLLATERAL_ASSET_TABLE =
     hex"C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB485f98805A4E8be255a32880FDeC7F6728C6568bA0";
 
-contract OptimizedGrimReaperSolV2Test is OptimizedGrimReaperSolTest {
+contract OptimizedGrimReaperSolL2Test is OptimizedGrimReaperSolTest {
     function _deployGrimReaper() internal override {
-        bytes memory solidityCode = type(OptimizedGrimReaperV2).runtimeCode;
+        bytes memory solidityCode = type(OptimizedGrimReaperL2).runtimeCode;
         reaper = GrimReaper(address(new Deployer(solidityCode, COLLATERAL_ASSET_TABLE)));
     }
 
@@ -204,7 +204,7 @@ contract OptimizedGrimReaperSolV2Test is OptimizedGrimReaperSolTest {
         override
         returns (bytes memory payload)
     {
-        payload = getGrimReaperV2LiquidationPayload(_col, _debt, _user, _debtToCover);
+        payload = getGrimReaperL2LiquidationPayload(_col, _debt, _user, _debtToCover);
     }
 }
 
@@ -228,7 +228,7 @@ contract GrimReaperHuffTest is OptimizedGrimReaperSolTest {
     }
 }
 
-contract GrimReaperHuffV2Test is GrimReaperHuffTest {
+contract GrimReaperHuffL2Test is GrimReaperHuffTest {
     /// @dev abi.encode(WETH, USDC, LUSD);
     bytes constant COLLATERAL_ASSET_TABLE_HUFF = abi.encode(
         0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
@@ -237,7 +237,7 @@ contract GrimReaperHuffV2Test is GrimReaperHuffTest {
     );
 
     function _deployGrimReaper() internal virtual override {
-        bytes memory code = HuffDeployer.deploy("GrimReaperV2").code;
+        bytes memory code = HuffDeployer.deploy("GrimReaperL2").code;
         reaper = GrimReaper(address(new Deployer(code, COLLATERAL_ASSET_TABLE_HUFF)));
     }
 
@@ -247,6 +247,6 @@ contract GrimReaperHuffV2Test is GrimReaperHuffTest {
         override
         returns (bytes memory payload)
     {
-        payload = getGrimReaperV2LiquidationPayload(_col, _debt, _user, _debtToCover);
+        payload = getGrimReaperL2LiquidationPayload(_col, _debt, _user, _debtToCover);
     }
 }
