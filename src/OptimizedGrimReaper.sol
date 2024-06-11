@@ -25,7 +25,7 @@ interface IPoolLike {
 }
 
 contract OptimizedGrimReaper {
-    address internal constant OWNER = 0x0000000000000000000000000000000000000003;
+    address internal constant OWNER = 0x00000dB7402a2Ae8E49369B46C0ED999bA024Ac7;
 
     /// @dev The Aave V3 Pool on Optimism
     address internal constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;

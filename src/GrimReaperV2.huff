@@ -9,7 +9,7 @@
 #define function liquidationCall(address collateralAsset,address debtAsset,address user,uint256 debtToCover,bool receiveAToken) nonpayable returns ()
 
 // Storage and constants
-#define constant OWNER = 0x0000000000000000000000000000000000000003
+#define constant OWNER = 0x00000dB7402a2Ae8E49369B46C0ED999bA024Ac7
 #define constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD
 #define constant TRANSFER_SELECTOR = 0xa9059cbb000000000000000000000000
 #define constant COLLATERAL_ASSETS_TABLE_OFFSET = 0x60 // 0x20 * 3
