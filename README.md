@@ -38,31 +38,31 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 
 | Single Liquidation (Optimizer runs: 200) | Gas Used | Bytecode Size (kB) |
 | ---------------------------------------- | -------- | ------------------ |
-| Solidity Contract                        | 98783    | 1.005              |
-| Assembly                                 | 97679    | 0.303              |
-| Assembly (GrimReaper V2)                 | 97648    | 0.317 + table      |
-| Huff Contract                            | 97597    | 0.231              |
-| Huff Contract (GrimReaper V2)            | 97564    | 0.243 + table      |
+| Solidity Contract                        | 94877    | 1.039              |
+| Assembly                                 | 94024    | 0.336              |
+| Assembly (GrimReaper L2)                 | 94060    | 0.350 + table      |
+| Huff Contract                            | 93942    | 0.248              |
+| Huff Contract (GrimReaper L2)            | 93976    | 0.260 + table      |
 
 | Single Liquidation (Optimizer runs: 10_000_000) | Gas Used | Bytecode Size (kB) |
 | ----------------------------------------------- | -------- | ------------------ |
-| Solidity Contract                               | 98127    | 1.308              |
-| Assembly                                        | 97089    | 0.330              |
-| Assembly (GrimReaper V2)                        | 97058    | 0.344 + table      |
-| Huff Contract                                   | 97019    | 0.231              |
-| Huff Contract (GrimReaper V2)                   | 96986    | 0.243 + table      |
+| Solidity Contract                               | 94301    | 1.342              |
+| Assembly                                        | 93508    | 0.363              |
+| Assembly (GrimReaper L2)                        | 93544    | 0.377 + table      |
+| Huff Contract                                   | 93438    | 0.248              |
+| Huff Contract (GrimReaper L2)                   | 93472    | 0.260 + table      |
 
 > `66270` gas is used for the liquidation logic itself on mock Aave v3 pool.
 
 > Note: Optimizer runs affects how well the compiler optimizes tests contract as well. So, it affects measurements.
 
 - solc version: 0.8.24, evm version: cancun with `bytecode_hash = "none"` and `cbor_metadata = false`.
-- `forge snapshot --fuzz-seed=111 -vv`
+- `forge test -vv --mt=testGas_Liquidate`
 
 ## Further Optimization Ideas
 
 - Support limited kinds of collateral tokens and remove `collateral` parameter from main entrypoint
-  - [x] O(1) selector table for token addresses. (`GrimReaper V2`)
+  - [x] O(1) selector table for token addresses to remove calldata size. (`GrimReaper L2`)
   - [ ] Approve once on contract deployment instead of every liquidation
 - Replace `jumpi` with other operations
   - [x] Use `mload(type(uint256).max)` for `jumpi` if-else-revert pattern (`GrimReaperHuff`)
