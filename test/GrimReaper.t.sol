@@ -160,6 +160,21 @@ contract OptimizedGrimReaperSolTest is GrimReaperBaseTest {
     {
         payload = abi.encodePacked(_col, _debt, _user, uint128(_debtToCover));
     }
+
+    function testRecoverERC20() public virtual override {
+        uint256 balance = 10000;
+        deal(address(debt), address(reaper), balance, true);
+
+        uint256 _before = gasleft();
+        vm.prank(owner);
+        (bool success,) =
+            address(reaper).call(abi.encodeWithSelector(OptimizedGrimReaper.execute_44g58pv.selector, address(debt)));
+        require(success, "recoverERC20 failed");
+        console2.log("gas usage: ", _before - gasleft());
+
+        assertEq(debt.balanceOf(address(reaper)), 1);
+        assertEq(debt.balanceOf(owner), balance - 1);
+    }
 }
 
 contract Deployer {
