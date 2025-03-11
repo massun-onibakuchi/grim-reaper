@@ -39,16 +39,16 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 | Single Liquidation (Optimizer runs: 200) | Gas Used | Bytecode Size (kB) |
 | ---------------------------------------- | -------- | ------------------ |
 | Solidity Contract                        | 94877    | 1.039              |
-| Assembly                                 | 94024    | 0.336              |
-| Assembly (GrimReaper L2)                 | 94060    | 0.350 + table      |
+| Assembly                                 | 94021    | 0.331              |
+| Assembly (GrimReaper L2)                 | 94057    | 0.345 + table      |
 | Huff Contract                            | 93942    | 0.248              |
 | Huff Contract (GrimReaper L2)            | 93976    | 0.260 + table      |
 
 | Single Liquidation (Optimizer runs: 10_000_000) | Gas Used | Bytecode Size (kB) |
 | ----------------------------------------------- | -------- | ------------------ |
 | Solidity Contract                               | 94301    | 1.342              |
-| Assembly                                        | 93508    | 0.363              |
-| Assembly (GrimReaper L2)                        | 93544    | 0.377 + table      |
+| Assembly                                        | 93505    | 0.358              |
+| Assembly (GrimReaper L2)                        | 93541    | 0.372 + table      |
 | Huff Contract                                   | 93438    | 0.248              |
 | Huff Contract (GrimReaper L2)                   | 93472    | 0.260 + table      |
 
